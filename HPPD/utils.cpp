@@ -1,5 +1,11 @@
 #include "utils.h"
 
+#include <cstdint>
+
+#ifdef _MSC_VER
+#pragma comment(lib, "Msimg32.lib")
+#endif
+
 // ============================================================
 // Existing helper
 // ============================================================
@@ -49,4 +55,282 @@ void runEffect(
     );
 
     Sleep(250);
+}
+
+// ============================================================
+// TEXT/TIMEBAR OVERLAY (Ctrl+F2)
+// ============================================================
+
+namespace
+{
+    const wchar_t* gOverlayName = L"";
+    ULONGLONG gOverlayStart = 0;
+    ULONGLONG gOverlayDuration = 5000;
+    volatile bool gOverlayVisible = false;
+    volatile bool gOverlayF2WasDown = false;
+}
+
+void OverlaySetPayload(
+    const wchar_t* name,
+    ULONGLONG durationMs
+)
+{
+    gOverlayName = name;
+    gOverlayDuration =
+        durationMs ? durationMs : 5000;
+    gOverlayStart =
+        GetTickCount64();
+}
+
+static void DrawOverlay()
+{
+    HDC dc = GetDC(NULL);
+
+    if (!dc)
+        return;
+
+    const int sw =
+        GetSystemMetrics(SM_CXSCREEN);
+
+    const int sh =
+        GetSystemMetrics(SM_CYSCREEN);
+
+    // Time left in this payload.
+    ULONGLONG now = GetTickCount64();
+
+    ULONGLONG elapsed =
+        now > gOverlayStart
+            ? now - gOverlayStart
+            : 0;
+
+    ULONGLONG remaining =
+        elapsed >= gOverlayDuration
+            ? 0
+            : gOverlayDuration - elapsed;
+
+    const int barW =
+        sw / 3;
+
+    const int barH = 12;
+    const int txtH = 22;
+    const int pad = 8;
+
+    const int bx =
+        (sw - barW) / 2;
+
+    const int by =
+        sh - barH - txtH - pad * 2 - 20;
+
+    // Offscreen surface for the overlay block.
+    HDC mem = CreateCompatibleDC(dc);
+
+    if (!mem)
+    {
+        ReleaseDC(NULL, dc);
+        return;
+    }
+
+    BITMAPINFO bi{};
+
+    bi.bmiHeader.biSize =
+        sizeof(BITMAPINFOHEADER);
+
+    bi.bmiHeader.biWidth = barW;
+    bi.bmiHeader.biHeight = -(barH + txtH + pad * 2);
+    bi.bmiHeader.biPlanes = 1;
+    bi.bmiHeader.biBitCount = 32;
+    bi.bmiHeader.biCompression = BI_RGB;
+
+    void* bits = nullptr;
+
+    HBITMAP bmp = CreateDIBSection(
+        dc,
+        &bi,
+        DIB_RGB_COLORS,
+        &bits,
+        NULL,
+        0
+    );
+
+    if (!bmp)
+    {
+        DeleteDC(mem);
+        ReleaseDC(NULL, dc);
+        return;
+    }
+
+    HGDIOBJ oldBmp =
+        SelectObject(mem, bmp);
+
+    // Backdrop.
+    HBRUSH bgBrush =
+        CreateSolidBrush(RGB(0, 0, 0));
+
+    HGDIOBJ oldBrush =
+        SelectObject(mem, bgBrush);
+
+    PatBlt(
+        mem,
+        0,
+        0,
+        barW,
+        barH + txtH + pad * 2,
+        PATCOPY
+    );
+
+    // Timebar.
+    int fx =
+        static_cast<int>(
+            (gOverlayDuration ? remaining : 0) *
+            1000 /
+            gOverlayDuration
+        );
+
+    if (fx < 0)
+        fx = 0;
+
+    if (fx > 1000)
+        fx = 1000;
+
+    const int fillW =
+        barW * fx / 1000;
+
+    HBRUSH barBrush =
+        CreateSolidBrush(RGB(0, 170, 255));
+
+    SelectObject(mem, barBrush);
+
+    PatBlt(
+        mem,
+        0,
+        0,
+        fillW,
+        barH,
+        PATCOPY
+    );
+
+    SelectObject(mem, bgBrush);
+
+    // Text.
+    unsigned seconds =
+        static_cast<unsigned>(remaining / 1000);
+
+    wchar_t buf[160];
+
+    wsprintfW(
+        buf,
+        L"%ls   %02u:%02u",
+        gOverlayName,
+        seconds / 60,
+        seconds % 60
+    );
+
+    HFONT font = CreateFontW(
+        20,
+        0,
+        0,
+        0,
+        FW_NORMAL,
+        FALSE,
+        FALSE,
+        FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY,
+        DEFAULT_PITCH,
+        L"Consolas"
+    );
+
+    HGDIOBJ oldFont =
+        SelectObject(mem, font);
+
+    SetBkMode(mem, TRANSPARENT);
+    SetTextColor(mem, RGB(255, 255, 255));
+
+    TextOutW(
+        mem,
+        4,
+        barH + pad,
+        buf,
+        lstrlenW(buf)
+    );
+
+    // Blend overlay (semi-transparent) over the screen.
+    BLENDFUNCTION bf{};
+
+    bf.BlendOp = AC_SRC_OVER;
+    bf.BlendFlags = 0;
+    bf.AlphaFormat = 0;
+    bf.SourceConstantAlpha = 160;
+
+    AlphaBlend(
+        dc,
+        bx,
+        by,
+        barW,
+        barH + txtH + pad * 2,
+        mem,
+        0,
+        0,
+        barW,
+        barH + txtH + pad * 2,
+        bf
+    );
+
+    SelectObject(mem, oldFont);
+    DeleteObject(font);
+    SelectObject(mem, oldBrush);
+    DeleteObject(bgBrush);
+    DeleteObject(barBrush);
+    SelectObject(mem, oldBmp);
+    DeleteObject(bmp);
+    DeleteDC(mem);
+    ReleaseDC(NULL, dc);
+}
+
+static DWORD WINAPI OverlayThread(LPVOID)
+{
+    for (;;)
+    {
+        Sleep(60);
+
+        bool ctrl =
+            (GetAsyncKeyState(VK_CONTROL)
+                & 0x8000) != 0;
+
+        bool f2 =
+            (GetAsyncKeyState(VK_F2)
+                & 0x8000) != 0;
+
+        bool combo = ctrl && f2;
+
+        // Toggle on the rising edge only.
+        if (combo && !gOverlayF2WasDown)
+            gOverlayVisible =
+                !gOverlayVisible;
+
+        gOverlayF2WasDown = combo;
+
+        if (gOverlayVisible)
+            DrawOverlay();
+    }
+
+    return 0;
+}
+
+void StartOverlay()
+{
+    HANDLE h =
+        CreateThread(
+            NULL,
+            0,
+            OverlayThread,
+            NULL,
+            0,
+            NULL
+        );
+
+    if (h)
+        CloseHandle(h);
 }

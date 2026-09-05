@@ -49,6 +49,8 @@ int main()
             L"change privileges, or play audio.\r\n\r\n"
             L"Press ESC during Payloads 13-24 "
             L"to skip the current effect.\r\n\r\n"
+            L"Press Ctrl+F2 to toggle the payload "
+            L"name / time overlay.\r\n\r\n"
             L"Continue?",
             L"Bromine Visual Demo",
             MB_YESNO |
@@ -58,38 +60,35 @@ int main()
     if (result != IDYES)
         return 0;
 
-    // --------------------------------------------------------
-    // Original Payloads
-    // --------------------------------------------------------
-
-    /*runEffect(GDIPayload1);
-    runEffect(GDIPayload2);
-    runEffect(GDIPayload3);
-    runEffect(GDIPayload4);
-    runEffect(GDIPayload5);
-    runEffect(GDIPayload6);
-    runEffect(GDIPayload7);
-    runEffect(GDIPayload8);
-    runEffect(GDIPayload9);
-    runEffect(GDIPayload10);
-    runEffect(GDIPayload11);
-    runEffect(GDIPayload12);*/
+    StartOverlay();
 
     // --------------------------------------------------------
     // New high-performance Payloads
     // --------------------------------------------------------
 
+    OverlaySetPayload(L"13 - Chromatic Plasma", 5000);
     runEffect(GDIPayload13);
+    OverlaySetPayload(L"14 - RGB Displacement", 5000);
     runEffect(GDIPayload14);
+    OverlaySetPayload(L"15 - Feedback Tunnel", 5000);
     runEffect(GDIPayload15);
+    OverlaySetPayload(L"16 - Fractured Screen", 5000);
     runEffect(GDIPayload16);
+    OverlaySetPayload(L"17 - Neon Edge Inversion", 5000);
     runEffect(GDIPayload17);
+    OverlaySetPayload(L"18 - Liquid Ripple", 5000);
     runEffect(GDIPayload18);
+    OverlaySetPayload(L"19 - Quantum Spiral", 5000);
     runEffect(GDIPayload19);
+    OverlaySetPayload(L"20 - Color Worm", 5000);
     runEffect(GDIPayload20);
+    OverlaySetPayload(L"21 - Radial Shockwave", 5000);
     runEffect(GDIPayload21);
+    OverlaySetPayload(L"22 - RGB Void", 5000);
     runEffect(GDIPayload22);
+    OverlaySetPayload(L"23 - Retro CRT", 5000);
     runEffect(GDIPayload23);
+    OverlaySetPayload(L"24 - Absolute GDI Chaos", 5000);
     runEffect(GDIPayload24);
 
     // --------------------------------------------------------

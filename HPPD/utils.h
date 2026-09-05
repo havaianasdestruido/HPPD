@@ -15,3 +15,14 @@ BOOL CALLBACK EnumProc(HWND hWnd, LPARAM);
 void runEffect(
     LPTHREAD_START_ROUTINE effect
 );
+
+// ============================================================
+// TEXT/TIMEBAR OVERLAY (Ctrl+F2)
+// ============================================================
+
+void StartOverlay(); // spawns the overlay watchdog thread
+
+void OverlaySetPayload(
+    const wchar_t* name,
+    ULONGLONG durationMs
+);
