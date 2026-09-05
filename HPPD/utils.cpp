@@ -20,20 +20,24 @@ BOOL CALLBACK EnumProc(HWND hWnd, LPARAM)
 // EFFECT RUNNER
 // ============================================================
 
-void runEffect(
+HANDLE StartEffect(
     LPTHREAD_START_ROUTINE effect
 )
 {
-    HANDLE thread =
-        CreateThread(
-            NULL,
-            0,
-            effect,
-            NULL,
-            0,
-            NULL
-        );
+    return CreateThread(
+        NULL,
+        0,
+        effect,
+        NULL,
+        0,
+        NULL
+    );
+}
 
+void WaitEffect(
+    HANDLE thread
+)
+{
     if (!thread)
         return;
 
@@ -55,6 +59,13 @@ void runEffect(
     );
 
     Sleep(250);
+}
+
+void runEffect(
+    LPTHREAD_START_ROUTINE effect
+)
+{
+    WaitEffect(StartEffect(effect));
 }
 
 // ============================================================

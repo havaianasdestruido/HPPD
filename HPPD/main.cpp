@@ -63,33 +63,89 @@ int main()
     StartOverlay();
 
     // --------------------------------------------------------
-    // New high-performance Payloads
+    // Payload 13-24 table (13-24 run; 1-12 are kept commented
+    // out for compatibility with the default build).
     // --------------------------------------------------------
 
-    OverlaySetPayload(L"13 - Chromatic Plasma", 5000);
-    runEffect(GDIPayload13);
-    OverlaySetPayload(L"14 - RGB Displacement", 5000);
-    runEffect(GDIPayload14);
-    OverlaySetPayload(L"15 - Feedback Tunnel", 5000);
-    runEffect(GDIPayload15);
-    OverlaySetPayload(L"16 - Fractured Screen", 5000);
-    runEffect(GDIPayload16);
-    OverlaySetPayload(L"17 - Neon Edge Inversion", 5000);
-    runEffect(GDIPayload17);
-    OverlaySetPayload(L"18 - Liquid Ripple", 5000);
-    runEffect(GDIPayload18);
-    OverlaySetPayload(L"19 - Quantum Spiral", 5000);
-    runEffect(GDIPayload19);
-    OverlaySetPayload(L"20 - Color Worm", 5000);
-    runEffect(GDIPayload20);
-    OverlaySetPayload(L"21 - Radial Shockwave", 5000);
-    runEffect(GDIPayload21);
-    OverlaySetPayload(L"22 - RGB Void", 5000);
-    runEffect(GDIPayload22);
-    OverlaySetPayload(L"23 - Retro CRT", 5000);
-    runEffect(GDIPayload23);
-    OverlaySetPayload(L"24 - Absolute GDI Chaos", 5000);
-    runEffect(GDIPayload24);
+    struct
+    {
+        const wchar_t* name;
+        DWORD ms;
+    } payloads[] =
+    {
+        { L"13 - Chromatic Plasma",        5000 },
+        { L"14 - RGB Displacement",        5000 },
+        { L"15 - Feedback Tunnel",         5000 },
+        { L"16 - Fractured Screen",        5000 },
+        { L"17 - Neon Edge Inversion",     5000 },
+        { L"18 - Liquid Ripple",           5000 },
+        { L"19 - Quantum Spiral",          5000 },
+        { L"20 - Color Worm",              5000 },
+        { L"21 - Radial Shockwave",        5000 },
+        { L"22 - RGB Void",                5000 },
+        { L"23 - Retro CRT",               5000 },
+        { L"24 - Absolute GDI Chaos",      5000 },
+    };
+
+    LPTHREAD_START_ROUTINE effects[] =
+    {
+        GDIPayload13,
+        GDIPayload14,
+        GDIPayload15,
+        GDIPayload16,
+        GDIPayload17,
+        GDIPayload18,
+        GDIPayload19,
+        GDIPayload20,
+        GDIPayload21,
+        GDIPayload22,
+        GDIPayload23,
+        GDIPayload24,
+    };
+
+    const int count =
+        static_cast<int>(
+            sizeof(effects) /
+            sizeof(effects[0])
+        );
+
+#if HPPD_MULTI
+    // -------------------------------------------------------
+    // MULTI: all payloads share the screen at once. Additive
+    // content-adder effects and full-screen GDI modifiers
+    // overlap, producing one combined chaos.
+    // -------------------------------------------------------
+
+    HANDLE threads[32];
+
+    for (int i = 0; i < count; ++i)
+    {
+        OverlaySetPayload(
+            payloads[i].name,
+            payloads[i].ms
+        );
+
+        threads[i] =
+            StartEffect(effects[i]);
+    }
+
+    for (int i = 0; i < count; ++i)
+        WaitEffect(threads[i]);
+#else
+    // -------------------------------------------------------
+    // DEFAULT: one effect at a time, in order.
+    // -------------------------------------------------------
+
+    for (int i = 0; i < count; ++i)
+    {
+        OverlaySetPayload(
+            payloads[i].name,
+            payloads[i].ms
+        );
+
+        runEffect(effects[i]);
+    }
+#endif
 
     // --------------------------------------------------------
     // Final cleanup
