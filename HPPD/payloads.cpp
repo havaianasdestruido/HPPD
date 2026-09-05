@@ -458,12 +458,6 @@ DWORD WINAPI GDIPayload6(LPVOID)
             {
                 const int i = y * w + x;
 
-                uint32_t px = pixels[i];
-
-                int r = px & 255;
-                int g = (px >> 8) & 255;
-                int b = (px >> 16) & 255;
-
                 int wave =
                     static_cast<int>(
                         std::sin(
@@ -471,14 +465,13 @@ DWORD WINAPI GDIPayload6(LPVOID)
                         ) * 32
                         );
 
-                r = ClampInt(r + wave, 0, 255);
-                g = ClampInt(g - wave, 0, 255);
-                b = ClampInt(b + wave, 0, 255);
-
                 pixels[i] =
-                    static_cast<uint32_t>(b) << 16 |
-                    static_cast<uint32_t>(g) << 8 |
-                    static_cast<uint32_t>(r);
+                    ShiftHSL(
+                        pixels[i],
+                        wave / 255.0f,
+                        0.0f,
+                        0.0f
+                    );
             }
         }
 
@@ -604,22 +597,13 @@ DWORD WINAPI GDIPayload7(LPVOID)
                         std::sin(fx * 0.02) * 50.0
                         );
 
-                uint32_t px = pixels[i];
-
-                int r = px & 255;
-                int g = (px >> 8) & 255;
-                int b = (px >> 16) & 255;
-
                 pixels[i] =
-                    static_cast<uint32_t>(
-                        ClampInt(b + wave, 0, 255)
-                        ) << 16 |
-                    static_cast<uint32_t>(
-                        ClampInt(g + wave, 0, 255)
-                        ) << 8 |
-                    static_cast<uint32_t>(
-                        ClampInt(r - wave, 0, 255)
-                        );
+                    ShiftHSL(
+                        pixels[i],
+                        -wave / 255.0f,
+                        0.0f,
+                        0.0f
+                    );
             }
         }
 
@@ -890,22 +874,13 @@ DWORD WINAPI GDIPayload9(LPVOID)
                         std::sin(fx * 0.025f) * 45.0f
                         );
 
-                uint32_t px = pixels[i];
-
-                int r = px & 255;
-                int g = (px >> 8) & 255;
-                int b = (px >> 16) & 255;
-
                 pixels[i] =
-                    static_cast<uint32_t>(
-                        ClampInt(b + wave, 0, 255)
-                        ) << 16 |
-                    static_cast<uint32_t>(
-                        ClampInt(g + wave, 0, 255)
-                        ) << 8 |
-                    static_cast<uint32_t>(
-                        ClampInt(r - wave, 0, 255)
-                        );
+                    ShiftHSL(
+                        pixels[i],
+                        -wave / 255.0f,
+                        0.0f,
+                        0.0f
+                    );
             }
         }
 
@@ -1385,23 +1360,13 @@ DWORD WINAPI GDIPayload13(LPVOID)
                             & 1023
                     ];
 
-                uint32_t px =
-                    p[i];
-
-                int r =
-                    px & 255;
-
-                int g =
-                    (px >> 8) & 255;
-
-                int b =
-                    (px >> 16) & 255;
-
                 p[i] =
-                    PackRGB(
-                        (r + rWave) >> 1,
-                        (g + gWave) >> 1,
-                        (b + bWave) >> 1
+                    ShiftHSL(
+                        p[i],
+                        (rWave + gWave + bWave)
+                            / 3.0f / 255.0f,
+                        0.0f,
+                        0.0f
                     );
             }
         }
@@ -1695,9 +1660,6 @@ DWORD WINAPI GDIPayload17(LPVOID)
                 int i =
                     y * s.w + x;
 
-                uint32_t center =
-                    p[i];
-
                 uint32_t left =
                     p[i - 1];
 
@@ -1709,15 +1671,6 @@ DWORD WINAPI GDIPayload17(LPVOID)
 
                 uint32_t down =
                     p[i + s.w];
-
-                int r =
-                    center & 255;
-
-                int g =
-                    (center >> 8) & 255;
-
-                int b =
-                    (center >> 16) & 255;
 
                 int lr =
                     left & 255;
@@ -1777,10 +1730,13 @@ DWORD WINAPI GDIPayload17(LPVOID)
                         );
 
                 p[i] =
-                    PackRGB(
-                        r + edgeR / 2 + pulse,
-                        g + edgeG / 2,
-                        b + edgeB / 2 + pulse
+                    ShiftHSL(
+                        p[i],
+                        pulse / 255.0f,
+                        (edgeR + edgeG + edgeB)
+                            / 3.0f / 255.0f,
+                        (edgeR + edgeG + edgeB)
+                            / 6.0f / 255.0f
                     );
             }
         }
@@ -2029,41 +1985,13 @@ DWORD WINAPI GDIPayload20(LPVOID)
                             ) & 2047
                     ];
 
-                uint32_t px =
-                    p[i];
-
-                int r =
-                    px & 255;
-
-                int g =
-                    (px >> 8) & 255;
-
-                int b =
-                    (px >> 16) & 255;
-
-                r =
-                    (r * 3 +
-                        wave * 2) >> 2;
-
-                g =
-                    (g * 2 +
-                        sine[
-                            (wave + t * 5)
-                                & 2047
-                        ]) >> 2;
-
-                b =
-                    (b * 2 +
-                        sine[
-                            (wave + 500)
-                                & 2047
-                        ]) >> 2;
-
                 p[i] =
-                    PackRGB(
-                        r,
-                        g,
-                        b
+                    ShiftHSL(
+                        p[i],
+                        wave / 255.0f,
+                        0.0f,
+                        (sine[(wave + t * 5) & 2047] - 128)
+                            / 255.0f / 4.0f
                     );
             }
         }
@@ -2271,41 +2199,12 @@ DWORD WINAPI GDIPayload22(LPVOID)
                             ) & 2047
                     ];
 
-                uint32_t px =
-                    p[i];
-
-                int r =
-                    px & 255;
-
-                int g =
-                    (px >> 8) & 255;
-
-                int b =
-                    (px >> 16) & 255;
-
-                r =
-                    Clamp8(
-                        r +
-                        wave / 2
-                    );
-
-                g =
-                    Clamp8(
-                        g -
-                        wave / 3
-                    );
-
-                b =
-                    Clamp8(
-                        b +
-                        wave
-                    );
-
                 p[i] =
-                    PackRGB(
-                        r,
-                        g,
-                        b
+                    ShiftHSL(
+                        p[i],
+                        wave / 255.0f / 2.0f,
+                        0.0f,
+                        wave / 255.0f / 4.0f
                     );
             }
         }
@@ -2356,25 +2255,6 @@ DWORD WINAPI GDIPayload23(LPVOID)
                 int i =
                     y * s.w + x;
 
-                uint32_t px =
-                    p[i];
-
-                int r =
-                    px & 255;
-
-                int g =
-                    (px >> 8) & 255;
-
-                int b =
-                    (px >> 16) & 255;
-
-                if (scanline == 0)
-                {
-                    r >>= 1;
-                    g >>= 1;
-                    b >>= 1;
-                }
-
                 int aberration =
                     static_cast<int>(
                         std::sin(
@@ -2385,10 +2265,11 @@ DWORD WINAPI GDIPayload23(LPVOID)
                         );
 
                 p[i] =
-                    PackRGB(
-                        r + aberration,
-                        g,
-                        b - aberration
+                    ShiftHSL(
+                        p[i],
+                        aberration / 255.0f,
+                        0.0f,
+                        scanline == 0 ? -0.20f : 0.0f
                     );
             }
         }

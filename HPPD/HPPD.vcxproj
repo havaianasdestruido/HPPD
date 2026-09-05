@@ -128,6 +128,7 @@
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="colors.h" />
     <ClInclude Include="payloads.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>

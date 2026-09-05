@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <algorithm>
 
+#include "colors.h"
+
 // ============================================================
 // Safe visual-only GDI effects demo
 //
@@ -199,6 +201,61 @@ static inline uint32_t PackRGB(
         static_cast<uint32_t>(
             Clamp8(r)
             );
+}
+
+// Shifts a packed BGR pixel through HSL space using
+// Colors::rgb2hsl / Colors::hsl2rgb.
+static inline uint32_t ShiftHSL(
+    uint32_t px,
+    FLOAT dHue,
+    FLOAT dSat,
+    FLOAT dLight
+)
+{
+    RGBQUAD rgb{};
+
+    rgb.rgbRed =
+        px & 255;
+
+    rgb.rgbGreen =
+        (px >> 8) & 255;
+
+    rgb.rgbBlue =
+        (px >> 16) & 255;
+
+    HSL hsl =
+        Colors::rgb2hsl(rgb);
+
+    hsl.h += dHue;
+    hsl.s += dSat;
+    hsl.l += dLight;
+
+    if (hsl.h < 0.f)
+        hsl.h += 1.f;
+
+    if (hsl.h >= 1.f)
+        hsl.h -= 1.f;
+
+    if (hsl.s < 0.f)
+        hsl.s = 0.f;
+
+    if (hsl.s > 1.f)
+        hsl.s = 1.f;
+
+    if (hsl.l < 0.f)
+        hsl.l = 0.f;
+
+    if (hsl.l > 1.f)
+        hsl.l = 1.f;
+
+    RGBQUAD out =
+        Colors::hsl2rgb(hsl);
+
+    return PackRGB(
+        out.rgbRed,
+        out.rgbGreen,
+        out.rgbBlue
+    );
 }
 
 static inline bool FXAbort()
