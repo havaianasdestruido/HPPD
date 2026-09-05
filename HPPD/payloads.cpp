@@ -1,4 +1,12 @@
 #include "payloads.h"
+#include "utils.h"
+
+// quick note for c/c++/c# begginers, when you import something
+// like "this.h", and not <this.h>, those have big differences
+
+// "this.h" means the C compilers will prioritize searching for
+// local headers, then fallbacking to system ones.
+// while <this.h> will have a system heard priority.
 
 #ifdef _MSC_VER
 #pragma comment(lib, "Msimg32.lib")
