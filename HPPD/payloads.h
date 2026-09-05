@@ -11,18 +11,18 @@
 #include "seed.h"
 
 // ============================================================
-// Safe visual-only GDI effects demo
+// HPPD - effects demo
 //
-// Payloads 1-24
+// Payloads 1-49.
 //
-// No:
-// - disk writes
-// - MBR modification
-// - privilege escalation
-// - BSOD / NtRaiseHardError
-// - audio playback
+// 1-12  original visual GDI effects (finite duration).
+// 13-24 fast visual GDI effects (5s, ESC aborts).
+// 25-49 mixed visual + window/cursor/process manipulation
+//        ported from a public bytebeat/GDI-effects dump.
+//        No disk writes, no MBR, no privilege escalation,
+//        no BSOD, no audio playback.
 //
-// ESC aborts Payloads 13-24.
+// ESC aborts Payloads 13-49.
 // Payloads 1-12 retain their original finite durations.
 // ============================================================
 
@@ -343,3 +343,28 @@ DWORD WINAPI GDIPayload21(LPVOID);
 DWORD WINAPI GDIPayload22(LPVOID);
 DWORD WINAPI GDIPayload23(LPVOID);
 DWORD WINAPI GDIPayload24(LPVOID);
+DWORD WINAPI GDIPayload25(LPVOID);
+DWORD WINAPI GDIPayload26(LPVOID);
+DWORD WINAPI GDIPayload27(LPVOID);
+DWORD WINAPI GDIPayload28(LPVOID);
+DWORD WINAPI GDIPayload29(LPVOID);
+DWORD WINAPI GDIPayload30(LPVOID);
+DWORD WINAPI GDIPayload31(LPVOID);
+DWORD WINAPI GDIPayload32(LPVOID);
+DWORD WINAPI GDIPayload33(LPVOID);
+DWORD WINAPI GDIPayload34(LPVOID);
+DWORD WINAPI GDIPayload35(LPVOID);
+DWORD WINAPI GDIPayload36(LPVOID);
+DWORD WINAPI GDIPayload37(LPVOID);
+DWORD WINAPI GDIPayload38(LPVOID);
+DWORD WINAPI GDIPayload39(LPVOID);
+DWORD WINAPI GDIPayload40(LPVOID);
+DWORD WINAPI GDIPayload41(LPVOID);
+DWORD WINAPI GDIPayload42(LPVOID);
+DWORD WINAPI GDIPayload43(LPVOID);
+DWORD WINAPI GDIPayload44(LPVOID);
+DWORD WINAPI GDIPayload45(LPVOID);
+DWORD WINAPI GDIPayload46(LPVOID);
+DWORD WINAPI GDIPayload47(LPVOID);
+DWORD WINAPI GDIPayload48(LPVOID);
+DWORD WINAPI GDIPayload49(LPVOID);

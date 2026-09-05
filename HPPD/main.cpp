@@ -10,7 +10,7 @@
 #include "seed.h"
 
 // ============================================================
-// Safe visual-only GDI effects demo
+// HPPD - effects demo
 //
 // No:
 // - disk writes
@@ -19,7 +19,13 @@
 // - BSOD / NtRaiseHardError
 // - audio playback
 //
-// ESC aborts Payloads 13-24.
+// Payloads 27, 28, 35, 36, 37, 39, 42 do manipulate windows
+// the user owns (resize / move / disable Close / spawn a few
+// harmless Windows utilities). They are still safe in the
+// sense of "won't kill the machine", but they will fight the
+// user while they run.
+//
+// ESC aborts Payloads 13-49.
 // Payloads 1-12 retain their original finite durations.
 //
 // A global SEED is picked once at startup and printed to the
@@ -47,8 +53,7 @@ int main()
             L"This is a visual-effects demo.\r\n\r\n"
             L"It does not modify your disk, crash Windows, "
             L"change privileges, or play audio.\r\n\r\n"
-            L"Press ESC during Payloads 13-24 "
-            L"to skip the current effect.\r\n\r\n"
+            L"Press ESC to skip the current effect.\r\n\r\n"
             L"Press Ctrl+F2 to toggle the payload "
             L"name / time overlay.\r\n\r\n"
             L"Continue?",
@@ -85,6 +90,31 @@ int main()
         { L"22 - RGB Void",                5000 },
         { L"23 - Retro CRT",               5000 },
         { L"24 - Absolute GDI Chaos",      5000 },
+        { L"25 - Dark",                    5000 },
+        { L"26 - Cursors",                 5000 },
+        { L"27 - Programs",                5000 },
+        { L"28 - Buttons",                 5000 },
+        { L"29 - RGBCircle",               5000 },
+        { L"30 - IconWave",                5000 },
+        { L"31 - Sinewave",                5000 },
+        { L"32 - Shake",                   5000 },
+        { L"33 - Dark2",                   5000 },
+        { L"34 - Melter",                  5000 },
+        { L"35 - Trails",                  5000 },
+        { L"36 - ResizeWindow",            5000 },
+        { L"37 - MoveWindow",              5000 },
+        { L"38 - Melter2",                 5000 },
+        { L"39 - WindowMax",               5000 },
+        { L"40 - Rotate",                  5000 },
+        { L"41 - Rainbow",                 5000 },
+        { L"42 - RandomCur",               5000 },
+        { L"43 - Melter3",                 5000 },
+        { L"44 - Colors",                  5000 },
+        { L"45 - Flip",                    5000 },
+        { L"46 - CircleSquare",            5000 },
+        { L"47 - Bright",                  5000 },
+        { L"48 - ExtremeRotation",         5000 },
+        { L"49 - Cubes",                   5000 },
     };
 
     LPTHREAD_START_ROUTINE effects[] =
@@ -101,6 +131,31 @@ int main()
         GDIPayload22,
         GDIPayload23,
         GDIPayload24,
+        GDIPayload25,
+        GDIPayload26,
+        GDIPayload27,
+        GDIPayload28,
+        GDIPayload29,
+        GDIPayload30,
+        GDIPayload31,
+        GDIPayload32,
+        GDIPayload33,
+        GDIPayload34,
+        GDIPayload35,
+        GDIPayload36,
+        GDIPayload37,
+        GDIPayload38,
+        GDIPayload39,
+        GDIPayload40,
+        GDIPayload41,
+        GDIPayload42,
+        GDIPayload43,
+        GDIPayload44,
+        GDIPayload45,
+        GDIPayload46,
+        GDIPayload47,
+        GDIPayload48,
+        GDIPayload49,
     };
 
     const int count =
