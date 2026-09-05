@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "colors.h"
+#include "seed.h"
 
 // ============================================================
 // Safe visual-only GDI effects demo

@@ -2,9 +2,12 @@
 #define NOMINMAX
 
 #include <windows.h>
+#include <cstdio>
+#include <intrin.h>
 
 #include "utils.h"
 #include "payloads.h"
+#include "seed.h"
 
 // ============================================================
 // Safe visual-only GDI effects demo
@@ -18,6 +21,10 @@
 //
 // ESC aborts Payloads 13-24.
 // Payloads 1-12 retain their original finite durations.
+//
+// A global SEED is picked once at startup and printed to the
+// console. Each payload derives its own variant from it, so
+// every run of the same effects looks different.
 // ============================================================
 
 // ============================================================
@@ -26,6 +33,14 @@
 
 int main()
 {
+    gSeed =
+        static_cast<uint32_t>(
+            GetTickCount64()
+        ) ^ static_cast<uint32_t>(__rdtsc());
+
+    printf("Global SEED: %u\n", gSeed);
+    fflush(stdout);
+
     int result =
         MessageBoxW(
             NULL,

