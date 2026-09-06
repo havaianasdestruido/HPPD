@@ -319,6 +319,8 @@ static inline uint32_t FXRand(
 // Payload declarations
 // ============================================================
 
+// i prob should make this more organized but who cares
+
 DWORD WINAPI GDIPayload1(LPVOID);
 DWORD WINAPI GDIPayload2(LPVOID);
 DWORD WINAPI GDIPayload3(LPVOID);

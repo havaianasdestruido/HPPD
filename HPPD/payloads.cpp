@@ -95,7 +95,7 @@ DWORD WINAPI GDIPayload1(LPVOID)
 
         Sleep(rand() % (25 - sd.amp / 2));
 
-        if (rand() % 25 == 24)
+        /*if (rand() % 25 == 24)
         {
             RedrawWindow(
                 NULL,
@@ -105,7 +105,7 @@ DWORD WINAPI GDIPayload1(LPVOID)
                 RDW_UPDATENOW |
                 RDW_ALLCHILDREN
             );
-        }
+        }*/
     }
 
     SelectObject(dcCopy, oldBmp);
@@ -244,9 +244,9 @@ DWORD WINAPI GDIPayload3(LPVOID)
             );
         }
 
-        Sleep(50 - sd.amp);
+        //Sleep(50 - sd.amp);
 
-        if (i % 25 == 24)
+        /*if (i % 25 == 24)
         {
             RedrawWindow(
                 NULL,
@@ -256,7 +256,7 @@ DWORD WINAPI GDIPayload3(LPVOID)
                 RDW_UPDATENOW |
                 RDW_ALLCHILDREN
             );
-        }
+        }*/
     }
 
     ReleaseDC(NULL, dc);
@@ -291,10 +291,10 @@ DWORD WINAPI GDIPayload4(LPVOID)
                 0,
                 w,
                 h,
-                PATINVERT
+                SRCAND//PATINVERT
             );
 
-            Sleep(rand() % 20);
+            //Sleep(rand() % 20);
 
             if ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0)
             {
@@ -396,7 +396,7 @@ DWORD WINAPI GDIPayload5(LPVOID)
             blur
         );
 
-        Sleep(rand() % 25);
+        //Sleep(rand() % 25);
     }
 
     SelectObject(dcCopy, oldBmp);
@@ -934,7 +934,7 @@ DWORD WINAPI GDIPayload9(LPVOID)
             SRCCOPY
         );
 
-        if (rand() % 25 == 24)
+        /*if (rand() % 25 == 24)
         {
             RedrawWindow(
                 NULL,
@@ -944,7 +944,7 @@ DWORD WINAPI GDIPayload9(LPVOID)
                 RDW_UPDATENOW |
                 RDW_ALLCHILDREN
             );
-        }
+        }*/
     }
 
     SelectObject(dcCopy, oldBmp);
@@ -1050,7 +1050,7 @@ DWORD WINAPI GDIPayload10(LPVOID)
             DeleteObject(brush);
         }
 
-        Sleep(50);
+        //Sleep(50);
     }
 
     SelectObject(dcCopy, oldBmp);
@@ -1195,7 +1195,7 @@ DWORD WINAPI GDIPayload11(LPVOID)
             SRCCOPY
         );
 
-        Sleep(25);
+        //Sleep(25);
     }
 
     SelectObject(dcCopy, oldBmp);
@@ -1314,7 +1314,7 @@ DWORD WINAPI GDIPayload12(LPVOID)
             );
         }
 
-        Sleep(10);
+        //Sleep(10);
     }
 
     SelectObject(dcCopy, oldBmp);
@@ -2631,7 +2631,7 @@ DWORD WINAPI GDIPayload25(LPVOID)
                 SRCAND
             );
 
-            Sleep(1);
+            //Sleep(1);
         }
     }
 
@@ -2681,7 +2681,7 @@ DWORD WINAPI GDIPayload26(LPVOID)
                 if (xs >= x)
                     ys = y;
 
-                Sleep(1);
+                //Sleep(1);
             }
         }
         else if (sel == 2)
@@ -2703,7 +2703,7 @@ DWORD WINAPI GDIPayload26(LPVOID)
                 if (xs >= x)
                     ys = 0;
 
-                Sleep(1);
+                //Sleep(1);
             }
         }
         else if (sel == 3)
@@ -2724,7 +2724,7 @@ DWORD WINAPI GDIPayload26(LPVOID)
                 if (xs <= 0)
                     ys = y;
 
-                Sleep(1);
+                //Sleep(1);
             }
         }
         else
@@ -2746,7 +2746,7 @@ DWORD WINAPI GDIPayload26(LPVOID)
                 if (xs <= 0)
                     ys = 0;
 
-                Sleep(1);
+                //Sleep(1);
             }
         }
     }
@@ -2824,7 +2824,7 @@ DWORD WINAPI GDIPayload28(LPVOID)
             SetWindowLongPtrW(hwnd, GWL_STYLE, style);
         }
 
-        Sleep(10);
+        //Sleep(10);
     }
 
     return 0;
@@ -2979,7 +2979,7 @@ DWORD WINAPI GDIPayload30(LPVOID)
 
                 i += 0.05;
                 wave += 0.32;
-                Sleep(10);
+                //Sleep(10);
             }
         }
         else if (sel == 2)
@@ -3001,7 +3001,7 @@ DWORD WINAPI GDIPayload30(LPVOID)
 
                 i += 0.05;
                 wave += 0.32;
-                Sleep(10);
+                //Sleep(10);
             }
         }
         else if (sel == 3)
@@ -3023,7 +3023,7 @@ DWORD WINAPI GDIPayload30(LPVOID)
 
                 i += 0.05;
                 wave += 0.32;
-                Sleep(10);
+                //Sleep(10);
             }
         }
         else
@@ -3045,7 +3045,7 @@ DWORD WINAPI GDIPayload30(LPVOID)
 
                 i += 0.05;
                 wave += 0.32;
-                Sleep(10);
+                //Sleep(10);
             }
         }
     }
@@ -3094,7 +3094,7 @@ DWORD WINAPI GDIPayload31(LPVOID)
             i += 0.04;
         }
 
-        Sleep(40);
+        //Sleep(40);
     }
 
     ReleaseDC(0, hdc);
@@ -3121,19 +3121,19 @@ DWORD WINAPI GDIPayload32(LPVOID)
     {
         BitBlt(hdc, 10, 10, x, y, hdc, 0, 0, SRCCOPY);
         if (FXAbort()) break;
-        Sleep(50);
+        //Sleep(50);
 
         BitBlt(hdc, -10, 10, x, y, hdc, 0, 0, SRCCOPY);
         if (FXAbort()) break;
-        Sleep(50);
+        //Sleep(50);
 
         BitBlt(hdc, 10, -10, x, y, hdc, 0, 0, SRCCOPY);
         if (FXAbort()) break;
-        Sleep(50);
+        //Sleep(50);
 
         BitBlt(hdc, -10, -10, x, y, hdc, 0, 0, SRCCOPY);
         if (FXAbort()) break;
-        Sleep(50);
+        //Sleep(50);
     }
 
     ReleaseDC(0, hdc);
@@ -3259,7 +3259,7 @@ DWORD WINAPI GDIPayload35(LPVOID)
 
         DrawIcon(hdc, curpos.x, curpos.y, cur.hCursor);
 
-        Sleep(10);
+        //Sleep(10);
     }
 
     ReleaseDC(0, hdc);
@@ -3351,7 +3351,7 @@ DWORD WINAPI GDIPayload37(LPVOID)
                 0
             );
 
-            Sleep(10);
+            //Sleep(10);
         }
 
         if (xs > x || ys > y)
@@ -3461,7 +3461,7 @@ DWORD WINAPI GDIPayload40(LPVOID)
                 0, 0, 0
             );
 
-            Sleep(40);
+            //Sleep(40);
         }
 
         for (int i = 0; i < rnd; i += 20)
@@ -3485,7 +3485,7 @@ DWORD WINAPI GDIPayload40(LPVOID)
                 0, 0, 0
             );
 
-            Sleep(40);
+            //Sleep(40);
         }
     }
 
@@ -3640,19 +3640,19 @@ DWORD WINAPI GDIPayload44(LPVOID)
 
         BitBlt(hdc, 1, 1, x, y, hdc, 0, 0, rop);
         if (FXAbort()) break;
-        Sleep(40);
+        //Sleep(40);
 
         BitBlt(hdc, -1, 1, x, y, hdc, 0, 0, rop);
         if (FXAbort()) break;
-        Sleep(40);
+        //Sleep(40);
 
         BitBlt(hdc, 1, -1, x, y, hdc, 0, 0, rop);
         if (FXAbort()) break;
-        Sleep(40);
+        //Sleep(40);
 
         BitBlt(hdc, -1, -1, x, y, hdc, 0, 0, rop);
         if (FXAbort()) break;
-        Sleep(40);
+        //Sleep(40);
     }
 
     ReleaseDC(0, hdc);
@@ -3778,7 +3778,7 @@ DWORD WINAPI GDIPayload46(LPVOID)
                 DeleteObject(region);
             }
 
-            Sleep(1);
+            //Sleep(1);
         }
     }
 
@@ -3922,7 +3922,7 @@ DWORD WINAPI GDIPayload49(LPVOID)
 
                 Rectangle(hdc, i, ys + 100, 100 + i, ys);
 
-                Sleep(10);
+                //Sleep(10);
             }
 
             SelectObject(hdc, oldBrush);
@@ -3934,7 +3934,7 @@ DWORD WINAPI GDIPayload49(LPVOID)
         if (ys >= y)
             ys = 0;
 
-        Sleep(30);
+        //Sleep(30);
     }
 
     ReleaseDC(0, hdc);
