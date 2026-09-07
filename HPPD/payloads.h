@@ -7,8 +7,8 @@
 #include <cstdint>
 #include <algorithm>
 
-#include "colors.h"
-#include "seed.h"
+#include "utils/colors.h"
+#include "utils/seed.h"
 
 // ============================================================
 // HPPD - effects demo

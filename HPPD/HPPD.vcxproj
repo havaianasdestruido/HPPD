@@ -215,18 +215,18 @@
     <ClCompile Include="easter\sys.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="payloads.cpp" />
-    <ClCompile Include="seed.cpp" />
-    <ClCompile Include="utils.cpp" />
+    <ClCompile Include="utils\seed.cpp" />
+    <ClCompile Include="utils\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="colors.h" />
+    <ClInclude Include="utils\colors.h" />
     <ClInclude Include="easter\dates.h" />
     <ClInclude Include="easter\desk.h" />
     <ClInclude Include="easter\sys.h" />
     <ClInclude Include="payloads.h" />
-    <ClInclude Include="seed.h" />
-    <ClInclude Include="unicurse.h" />
-    <ClInclude Include="utils.h" />
+    <ClInclude Include="utils\seed.h" />
+    <ClInclude Include="utils\unicurse.h" />
+    <ClInclude Include="utils\utils.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="easter\eastereggs.txt" />

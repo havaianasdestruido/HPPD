@@ -5,9 +5,9 @@
 #include <cstdio>
 #include <intrin.h>
 
-#include "utils.h"
+#include "utils/utils.h"
 #include "payloads.h"
-#include "seed.h"
+#include "utils/seed.h"
 #include "easter/dates.h"
 #include "easter/desk.h"
 #include "easter/sys.h"

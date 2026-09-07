@@ -30,10 +30,10 @@
     <ClCompile Include="payloads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="seed.cpp">
+    <ClCompile Include="utils\seed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils.cpp">
+    <ClCompile Include="utils\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="easter\hw.cpp">
@@ -41,7 +41,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="colors.h">
+    <ClInclude Include="utils\colors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="easter\dates.h">
@@ -56,13 +56,13 @@
     <ClInclude Include="payloads.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="seed.h">
+    <ClInclude Include="utils\seed.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="utils\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="unicurse.h">
+    <ClInclude Include="utils\unicurse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
