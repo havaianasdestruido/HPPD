@@ -12,10 +12,23 @@
 namespace MassEject // ik making a full-ass namespace is a overkill
 {					// but who cares lol
 
-static void EnumDisks()
+static int EnumDisks(wchar_t roots[][4], int maxDrives)
 {
-	// TODO: enumarate disk logic
-	return;
+	// Fills up to `maxDrives` entries with drive-root strings
+	// ("C:\", "D:\", ...). Returns how many were filled.
+	DWORD mask = GetLogicalDrives();
+	int n = 0;
+
+	for (int i = 0; i < 26 && n < maxDrives; ++i)
+	{
+		if (mask & (1u << i))
+		{
+			wsprintfW(roots[n], L"%c:\\", L'A' + i);
+			++n;
+		}
+	}
+
+	return n;
 }
 static void ForceEject(int whatever) //put a string or anything as a param
 {

