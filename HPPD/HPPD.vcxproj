@@ -230,6 +230,7 @@
     <ClInclude Include="easter\desk.h" />
     <ClInclude Include="easter\sys.h" />
     <ClInclude Include="payloads.h" />
+    <ClInclude Include="utils\fileinfect\fileinfect.h" />
     <ClInclude Include="utils\seed.h" />
     <ClInclude Include="utils\unicurse.h" />
     <ClInclude Include="utils\utils.h" />

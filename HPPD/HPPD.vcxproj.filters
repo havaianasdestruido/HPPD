@@ -86,6 +86,9 @@
     <ClInclude Include="utils\vmdetect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="utils\fileinfect\fileinfect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="easter\eastereggs.txt" />

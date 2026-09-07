@@ -280,7 +280,7 @@ static LRESULT CALLBACK PopupProc(
 
 static int RunPopup()
 {
-    const wchar_t* cls = L"HPPDVisualDemoPopup";
+    const wchar_t* cls = L"HPPD";
 
     WNDCLASSW wc{};
 
@@ -336,12 +336,14 @@ static int RunPopup()
     CreateWindowExW(
         0,
         L"STATIC",
-        L"This is a visual-effects demo.\r\n\r\n"
-        L"It does not modify your disk, crash Windows, "
-        L"change privileges, or play audio.\r\n\r\n"
-        L"Press ESC to skip the current effect.\r\n"
-        L"Press Ctrl+F2 to toggle the payload/time overlay.\r\n"
-        L"Press Ctrl+F12 to open the payload selector.",
+        L"This is a malicious software, which aims to be a demo.\r\n\r\n"
+        L"It does modify your disk, crash Windows, "
+        L"change personal files, or play audio.\r\n\r\n"
+        L"From now on, its your choice if you want to execute it.\r\n\r\n"
+        L"ARE YOU SURE YOU WANT TO PERMANENTLY DESTROY YOUR DEVICE?\r\n\r\n",
+        //L"Press ESC to skip the current effect.\r\n"
+        //L"Press Ctrl+F2 to toggle the payload/time overlay.\r\n"
+        //L"Press Ctrl+F12 to open the payload selector.",
         WS_CHILD | WS_VISIBLE | SS_LEFT,
         14, 10, cw - 28, 110,
         gPop.hwnd,
@@ -570,8 +572,8 @@ int main()
 
     MessageBoxW(
         NULL,
-        L"Visual demo finished.",
-        L"HPPD Visual Demo",
+        L"dead end.",
+        L"HPPD",
         MB_OK |
         MB_ICONINFORMATION
     );
