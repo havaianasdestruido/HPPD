@@ -54,73 +54,74 @@ struct PayloadEntry
     const wchar_t* name;
     DWORD ms;
     LPTHREAD_START_ROUTINE fn;
+    bool heavy; // full-screen per-pixel renderer: runs one at a time
 };
 
 static PayloadEntry gPayloads[] =
 {
-    { L"01 - Screen Feedback",          5000, GDIPayload1  },
-    { L"02 - Pixelation Zoom",          5000, GDIPayload2  },
-    { L"03 - Error Icons",              5000, GDIPayload3  },
-    { L"04 - XOR Inversion",            5000, GDIPayload4  },
-    { L"05 - Motion Blur",              5000, GDIPayload5  },
-    { L"06 - Hue Displacement",         5000, GDIPayload6  },
-    { L"07 - Plasma Hue",               5000, GDIPayload7  },
-    { L"08 - Fractal RGB",              5000, GDIPayload8  },
-    { L"09 - Zoom Hue Chaos",           5000, GDIPayload9  },
-    { L"10 - Color Pulse",              5000, GDIPayload10 },
-    { L"11 - RGB Noise Zoom",           5000, GDIPayload11 },
-    { L"12 - Horizontal Tear",          5000, GDIPayload12 },
-    { L"13 - Chromatic Plasma",         5000, GDIPayload13 },
-    { L"14 - RGB Displacement",        5000, GDIPayload14 },
-    { L"15 - Feedback Tunnel",         5000, GDIPayload15 },
-    { L"16 - Fractured Screen",        5000, GDIPayload16 },
-    { L"17 - Neon Edge Inversion",     5000, GDIPayload17 },
-    { L"18 - Liquid Ripple",           5000, GDIPayload18 },
-    { L"19 - Quantum Spiral",          5000, GDIPayload19 },
-    { L"20 - Color Worm",              5000, GDIPayload20 },
-    { L"21 - Radial Shockwave",        5000, GDIPayload21 },
-    { L"22 - RGB Void",                5000, GDIPayload22 },
-    { L"23 - Retro CRT",               5000, GDIPayload23 },
-    { L"24 - Absolute GDI Chaos",      5000, GDIPayload24 },
-    { L"25 - Dark",                    5000, GDIPayload25 },
-    { L"26 - Cursors",                 5000, GDIPayload26 },
-    { L"27 - Programs",                5000, GDIPayload27 },
-    { L"28 - Buttons",                 5000, GDIPayload28 },
-    { L"29 - RGBCircle",               5000, GDIPayload29 },
-    { L"30 - IconWave",                5000, GDIPayload30 },
-    { L"31 - Sinewave",                5000, GDIPayload31 },
-    { L"32 - Shake",                   5000, GDIPayload32 },
-    { L"33 - Dark2",                   5000, GDIPayload33 },
-    { L"34 - Melter",                  5000, GDIPayload34 },
-    { L"35 - Trails",                  5000, GDIPayload35 },
-    { L"36 - ResizeWindow",            5000, GDIPayload36 },
-    { L"37 - MoveWindow",              5000, GDIPayload37 },
-    { L"38 - Melter2",                 5000, GDIPayload38 },
-    { L"39 - WindowMax",               5000, GDIPayload39 },
-    { L"40 - Rotate",                  5000, GDIPayload40 },
-    { L"41 - Rainbow",                 5000, GDIPayload41 },
-    { L"42 - RandomCur",               5000, GDIPayload42 },
-    { L"43 - Melter3",                 5000, GDIPayload43 },
-    { L"44 - Colors",                  5000, GDIPayload44 },
-    { L"45 - Flip",                    5000, GDIPayload45 },
-    { L"46 - CircleSquare",            5000, GDIPayload46 },
-    { L"47 - Bright",                  5000, GDIPayload47 },
-    { L"48 - ExtremeRotation",         5000, GDIPayload48 },
-    { L"49 - Cubes",                   5000, GDIPayload49 },
-    { L"50 - Chromatic Vortex",        5000, GDIPayload50 },
-    { L"51 - Polar Liquid",            5000, GDIPayload51 },
-    { L"52 - Kaleidoscope",            5000, GDIPayload52 },
-    { L"53 - Radial Tunnel",           5000, GDIPayload53 },
-    { L"54 - Voronoi Cells",           5000, GDIPayload54 },
-    { L"55 - Sine Fold",               5000, GDIPayload55 },
-    { L"56 - Chromatic Aberration",    5000, GDIPayload56 },
-    { L"57 - Mirror Feedback",         5000, GDIPayload57 },
-    { L"58 - Echo Stack",              5000, GDIPayload58 },
-    { L"59 - Interference",            5000, GDIPayload59 },
-    { L"60 - Pixel Sort",              5000, GDIPayload60 },
-    { L"61 - Julia Set",               5000, GDIPayload61 },
-    { L"62 - Flow Field",              5000, GDIPayload62 },
-    { L"63 - Reaction Diff",           5000, GDIPayload63 },
+    { L"01 - Screen Feedback",          5000, GDIPayload1,  true  },
+    { L"02 - Pixelation Zoom",          5000, GDIPayload2,  true  },
+    { L"03 - Error Icons",              5000, GDIPayload3,  false },
+    { L"04 - XOR Inversion",            5000, GDIPayload4,  false },
+    { L"05 - Motion Blur",              5000, GDIPayload5,  true  },
+    { L"06 - Hue Displacement",         5000, GDIPayload6,  true  },
+    { L"07 - Plasma Hue",               5000, GDIPayload7,  true  },
+    { L"08 - Fractal RGB",              5000, GDIPayload8,  true  },
+    { L"09 - Zoom Hue Chaos",           5000, GDIPayload9,  true  },
+    { L"10 - Color Pulse",              5000, GDIPayload10, true  },
+    { L"11 - RGB Noise Zoom",           5000, GDIPayload11, true  },
+    { L"12 - Horizontal Tear",          5000, GDIPayload12, false },
+    { L"13 - Chromatic Plasma",         5000, GDIPayload13, true  },
+    { L"14 - RGB Displacement",         5000, GDIPayload14, true  },
+    { L"15 - Feedback Tunnel",          5000, GDIPayload15, true  },
+    { L"16 - Fractured Screen",         5000, GDIPayload16, false },
+    { L"17 - Neon Edge Inversion",      5000, GDIPayload17, true  },
+    { L"18 - Liquid Ripple",            5000, GDIPayload18, false },
+    { L"19 - Quantum Spiral",           5000, GDIPayload19, true  },
+    { L"20 - Color Worm",               5000, GDIPayload20, true  },
+    { L"21 - Radial Shockwave",         5000, GDIPayload21, true  },
+    { L"22 - RGB Void",                 5000, GDIPayload22, true  },
+    { L"23 - Retro CRT",                5000, GDIPayload23, true  },
+    { L"24 - Absolute GDI Chaos",       5000, GDIPayload24, true  },
+    { L"25 - Dark",                     5000, GDIPayload25, false },
+    { L"26 - Cursors",                  5000, GDIPayload26, false },
+    { L"27 - Programs",                 5000, GDIPayload27, false },
+    { L"28 - Buttons",                  5000, GDIPayload28, false },
+    { L"29 - RGBCircle",                5000, GDIPayload29, false },
+    { L"30 - IconWave",                 5000, GDIPayload30, false },
+    { L"31 - Sinewave",                 5000, GDIPayload31, false },
+    { L"32 - Shake",                    5000, GDIPayload32, false },
+    { L"33 - Dark2",                    5000, GDIPayload33, false },
+    { L"34 - Melter",                   5000, GDIPayload34, false },
+    { L"35 - Trails",                   5000, GDIPayload35, false },
+    { L"36 - ResizeWindow",            5000, GDIPayload36, false },
+    { L"37 - MoveWindow",              5000, GDIPayload37, false },
+    { L"38 - Melter2",                 5000, GDIPayload38, false },
+    { L"39 - WindowMax",               5000, GDIPayload39, false },
+    { L"40 - Rotate",                  5000, GDIPayload40, true  },
+    { L"41 - Rainbow",                 5000, GDIPayload41, false },
+    { L"42 - RandomCur",               5000, GDIPayload42, false },
+    { L"43 - Melter3",                 5000, GDIPayload43, false },
+    { L"44 - Colors",                  5000, GDIPayload44, false },
+    { L"45 - Flip",                    5000, GDIPayload45, false },
+    { L"46 - CircleSquare",            5000, GDIPayload46, false },
+    { L"47 - Bright",                  5000, GDIPayload47, false },
+    { L"48 - ExtremeRotation",         5000, GDIPayload48, true  },
+    { L"49 - Cubes",                   5000, GDIPayload49, false },
+    { L"50 - Chromatic Vortex",        5000, GDIPayload50, true  },
+    { L"51 - Polar Liquid",            5000, GDIPayload51, true  },
+    { L"52 - Kaleidoscope",            5000, GDIPayload52, true  },
+    { L"53 - Radial Tunnel",           5000, GDIPayload53, true  },
+    { L"54 - Voronoi Cells",           5000, GDIPayload54, true  },
+    { L"55 - Sine Fold",               5000, GDIPayload55, true  },
+    { L"56 - Chromatic Aberration",    5000, GDIPayload56, true  },
+    { L"57 - Mirror Feedback",         5000, GDIPayload57, true  },
+    { L"58 - Echo Stack",              5000, GDIPayload58, true  },
+    { L"59 - Interference",            5000, GDIPayload59, true  },
+    { L"60 - Pixel Sort",              5000, GDIPayload60, true  },
+    { L"61 - Julia Set",               5000, GDIPayload61, true  },
+    { L"62 - Flow Field",              5000, GDIPayload62, true  },
+    { L"63 - Reaction Diff",           5000, GDIPayload63, true  },
 };
 
 static const int gPayloadCount =
@@ -128,6 +129,44 @@ static const int gPayloadCount =
         sizeof(gPayloads) /
         sizeof(gPayloads[0])
     );
+
+// ============================================================
+// MULTI-MODE FULL-SCREEN SLOT
+//
+// Full-screen per-pixel renderers (fractals, Julia, reaction
+// diffusion, ...) share one slot so only a single one paints
+// the whole screen at a time. Lightweight modifiers (shake,
+// colors, windows, cursors) are NOT gated and overlap freely.
+// ============================================================
+
+namespace
+{
+    HANDLE gHeavySlot = nullptr;
+
+    struct SlotArg
+    {
+        LPTHREAD_START_ROUTINE fn;
+    };
+
+    DWORD WINAPI SlotRunner(LPVOID param)
+    {
+        SlotArg* arg =
+            static_cast<SlotArg*>(param);
+
+        WaitForSingleObject(
+            gHeavySlot,
+            INFINITE
+        );
+
+        arg->fn(nullptr);
+
+        ReleaseMutex(gHeavySlot);
+
+        delete arg;
+
+        return 0;
+    }
+}
 
 // ============================================================
 // WARNING POPUP + PAYLOAD SELECTOR
@@ -766,6 +805,8 @@ int main()
 
     HANDLE threads[64];
 
+    gHeavySlot = CreateMutexW(nullptr, FALSE, nullptr);
+
     for (int i = 0; i < gPayloadCount; ++i)
     {
         OverlaySetPayload(
@@ -773,12 +814,32 @@ int main()
             gPayloads[i].ms
         );
 
-        threads[i] =
-            StartEffect(gPayloads[i].fn);
+        if (gPayloads[i].heavy)
+        {
+            threads[i] =
+                CreateThread(
+                    nullptr,
+                    0,
+                    SlotRunner,
+                    new SlotArg{
+                        gPayloads[i].fn
+                    },
+                    0,
+                    nullptr
+                );
+        }
+        else
+        {
+            threads[i] =
+                StartEffect(gPayloads[i].fn);
+        }
     }
 
     for (int i = 0; i < gPayloadCount; ++i)
         WaitEffect(threads[i]);
+
+    CloseHandle(gHeavySlot);
+    gHeavySlot = nullptr;
 #else
     // -------------------------------------------------------
     // DEFAULT: one effect at a time, in order.
