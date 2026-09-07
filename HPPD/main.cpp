@@ -28,7 +28,7 @@
 // sense of "won't kill the machine", but they will fight the
 // user while they run.
 //
-// ESC / STOP aborts Payloads 1-49.
+// ESC / STOP aborts Payloads 1-57.
 // Payloads 1-12 retain their original finite durations
 // unless aborted early.
 //
@@ -44,7 +44,7 @@
 // ============================================================
 
 // ============================================================
-// PAYLOAD CATALOG (1-49)
+// PAYLOAD CATALOG (1-57)
 // ============================================================
 
 struct PayloadEntry
@@ -105,6 +105,14 @@ static PayloadEntry gPayloads[] =
     { L"47 - Bright",                  5000, GDIPayload47 },
     { L"48 - ExtremeRotation",         5000, GDIPayload48 },
     { L"49 - Cubes",                   5000, GDIPayload49 },
+    { L"50 - Chromatic Vortex",        5000, GDIPayload50 },
+    { L"51 - Polar Liquid",            5000, GDIPayload51 },
+    { L"52 - Kaleidoscope",            5000, GDIPayload52 },
+    { L"53 - Radial Tunnel",           5000, GDIPayload53 },
+    { L"54 - Voronoi Cells",           5000, GDIPayload54 },
+    { L"55 - Sine Fold",               5000, GDIPayload55 },
+    { L"56 - Chromatic Aberration",    5000, GDIPayload56 },
+    { L"57 - Mirror Feedback",         5000, GDIPayload57 },
 };
 
 static const int gPayloadCount =

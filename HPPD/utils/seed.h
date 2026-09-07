@@ -26,7 +26,7 @@ struct SeedVariant
     uint32_t rng;    // nonzero   derived state for FXRand / srand
 };
 
-// Returns the cached variant for a payload id (1..24).
+// Returns the cached variant for a payload id (1..63).
 const SeedVariant& SeedGet(int payloadId);
 
 // Seed value to pass to srand() so rand()-based payloads vary per run.

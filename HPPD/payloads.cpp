@@ -3992,5 +3992,1197 @@ DWORD WINAPI GDIPayload49(LPVOID)
     return 0;
 }
 
-// 50 placeholder if more are added later; not currently wired.
-// (Skipped; payload list ends at 49.)
+// ============================================================
+// GDI DEMOSCENE FX PACK (PAYLOADS 50-57)
+//
+// Per-pixel remap/shaders running on a temporary screen-sized
+// DIB. Each payload grabs the screen HDC itself and owns a
+// matching ReleaseDC, like the rest of the file.
+// ============================================================
+
+namespace
+{
+    static int ClampI(int x, int a, int b)
+    {
+        return std::max(a, std::min(b, x));
+    }
+
+    static uint32_t RGBPixel(int r, int g, int b)
+    {
+        return
+            ((uint32_t)ClampI(b, 0, 255) << 16) |
+            ((uint32_t)ClampI(g, 0, 255) << 8) |
+            (uint32_t)ClampI(r, 0, 255);
+    }
+
+    static void SplitRGB(
+        uint32_t p,
+        int& r,
+        int& g,
+        int& b
+    )
+    {
+        r = p & 255;
+        g = (p >> 8) & 255;
+        b = (p >> 16) & 255;
+    }
+
+    struct GDIBuffer
+    {
+        HDC dc = nullptr;
+        HBITMAP bmp = nullptr;
+        HGDIOBJ old = nullptr;
+        uint32_t* pixels = nullptr;
+        int w = 0;
+        int h = 0;
+    };
+
+    static bool CreateBuffer(
+        HDC source,
+        GDIBuffer& out,
+        int w,
+        int h
+    )
+    {
+        out.w = w;
+        out.h = h;
+
+        out.dc = CreateCompatibleDC(source);
+
+        if (!out.dc)
+            return false;
+
+        BITMAPINFO bi{};
+        bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bi.bmiHeader.biWidth = w;
+        bi.bmiHeader.biHeight = -h;
+        bi.bmiHeader.biPlanes = 1;
+        bi.bmiHeader.biBitCount = 32;
+        bi.bmiHeader.biCompression = BI_RGB;
+
+        out.bmp =
+            CreateDIBSection(
+                source,
+                &bi,
+                DIB_RGB_COLORS,
+                reinterpret_cast<void**>(&out.pixels),
+                nullptr,
+                0
+            );
+
+        if (!out.bmp || !out.pixels)
+        {
+            if (out.bmp)
+                DeleteObject(out.bmp);
+
+            DeleteDC(out.dc);
+
+            out.dc = nullptr;
+            out.bmp = nullptr;
+            out.pixels = nullptr;
+
+            return false;
+        }
+
+        out.old = SelectObject(out.dc, out.bmp);
+
+        return true;
+    }
+
+    static void DestroyBuffer(GDIBuffer& b)
+    {
+        if (b.dc)
+        {
+            SelectObject(b.dc, b.old);
+            DeleteDC(b.dc);
+        }
+
+        if (b.bmp)
+            DeleteObject(b.bmp);
+
+        b = {};
+    }
+}
+
+// ============================================================
+// PAYLOAD 50
+// Chromatic vortex / RGB separation
+// ============================================================
+
+DWORD WINAPI GDIPayload50(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(50);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer src;
+
+    if (!CreateBuffer(dc, src, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const float cx = w * 0.5f;
+    const float cy = h * 0.5f;
+
+    for (int frame = 0; frame < 260; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            src.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        float time = frame * 0.035f;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float dx = x - cx;
+                float dy = y - cy;
+
+                float radius =
+                    sqrtf(dx * dx + dy * dy);
+
+                float angle =
+                    atan2f(dy, dx);
+
+                float vortex =
+                    sinf(
+                        radius * 0.012f -
+                        time * 4.0f
+                    ) *
+                    (0.12f + sd.amp * 0.004f);
+
+                float a = angle + vortex;
+
+                int rx =
+                    ClampI(
+                        (int)(cx + cosf(a) * radius),
+                        0,
+                        w - 1
+                    );
+
+                int gx =
+                    ClampI(
+                        (int)(cx + cosf(a + 0.035f) * radius),
+                        0,
+                        w - 1
+                    );
+
+                int bx =
+                    ClampI(
+                        (int)(cx + cosf(a - 0.035f) * radius),
+                        0,
+                        w - 1
+                    );
+
+                int ry =
+                    ClampI(
+                        (int)(cy + sinf(a) * radius),
+                        0,
+                        h - 1
+                    );
+
+                int gy =
+                    ClampI(
+                        (int)(cy + sinf(a + 0.035f) * radius),
+                        0,
+                        h - 1
+                    );
+
+                int by =
+                    ClampI(
+                        (int)(cy + sinf(a - 0.035f) * radius),
+                        0,
+                        h - 1
+                    );
+
+                int pr, pg, pb;
+
+                SplitRGB(
+                    src.pixels[ry * w + rx],
+                    pr,
+                    pg,
+                    pb
+                );
+
+                int r2, g2, b2;
+
+                SplitRGB(
+                    src.pixels[gy * w + gx],
+                    r2,
+                    g2,
+                    b2
+                );
+
+                int r3, g3, b3;
+
+                SplitRGB(
+                    src.pixels[by * w + bx],
+                    r3,
+                    g3,
+                    b3
+                );
+
+                src.pixels[y * w + x] =
+                    RGBPixel(
+                        pr,
+                        g2,
+                        b3
+                    );
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            src.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+    }
+
+    DestroyBuffer(src);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 51
+// Polar liquid distortion
+// ============================================================
+
+DWORD WINAPI GDIPayload51(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(51);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer src;
+
+    if (!CreateBuffer(dc, src, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const float cx = w * .5f;
+    const float cy = h * .5f;
+
+    for (int frame = 0; frame < 240; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            src.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        float t = frame * .055f;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float dx = x - cx;
+                float dy = y - cy;
+
+                float r =
+                    sqrtf(dx * dx + dy * dy);
+
+                float a =
+                    atan2f(dy, dx);
+
+                float wave =
+                    sinf(
+                        r * 0.028f +
+                        sinf(a * 7.0f + t) * 3.0f -
+                        t * 3.0f
+                    );
+
+                float displacement =
+                    wave *
+                    (7.0f + sd.amp * 0.7f);
+
+                float sx =
+                    cx +
+                    cosf(a) *
+                    (r + displacement);
+
+                float sy =
+                    cy +
+                    sinf(a) *
+                    (r + displacement);
+
+                int ix =
+                    ClampI((int)sx, 0, w - 1);
+
+                int iy =
+                    ClampI((int)sy, 0, h - 1);
+
+                src.pixels[y * w + x] =
+                    src.pixels[iy * w + ix];
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            src.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+    }
+
+    DestroyBuffer(src);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 52
+// Kaleidoscope recursion
+// ============================================================
+
+DWORD WINAPI GDIPayload52(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(52);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    int w = GetDeviceCaps(dc, HORZRES);
+    int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer a;
+    GDIBuffer b;
+
+    if (!CreateBuffer(dc, a, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    if (!CreateBuffer(dc, b, w, h))
+    {
+        DestroyBuffer(a);
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    for (int frame = 0; frame < 300; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            a.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        int cx = w / 2;
+        int cy = h / 2;
+
+        float pulse =
+            1.0f +
+            sinf(frame * .07f) * .06f;
+
+        for (int sector = 0; sector < 8; ++sector)
+        {
+            float angle =
+                sector * 3.14159265f / 4.0f +
+                frame * .006f;
+
+            int sw =
+                (int)(w * .52f * pulse);
+
+            int sh =
+                (int)(h * .52f * pulse);
+
+            int ox =
+                (int)(cosf(angle) * w * .08f);
+
+            int oy =
+                (int)(sinf(angle) * h * .08f);
+
+            StretchBlt(
+                b.dc,
+                cx - sw / 2 + ox,
+                cy - sh / 2 + oy,
+                sw,
+                sh,
+                a.dc,
+                0,
+                0,
+                w,
+                h,
+                SRCCOPY
+            );
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            b.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+    }
+
+    DestroyBuffer(a);
+    DestroyBuffer(b);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 53
+// Radial tunnel
+// ============================================================
+
+DWORD WINAPI GDIPayload53(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(53);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    int w = GetDeviceCaps(dc, HORZRES);
+    int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer buf;
+
+    if (!CreateBuffer(dc, buf, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    for (int frame = 0; frame < 240; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            buf.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        float t =
+            frame * .035f;
+
+        float zoom =
+            1.0f +
+            sinf(t) * .025f;
+
+        int cx = w / 2;
+        int cy = h / 2;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float dx = (float)(x - cx);
+                float dy = (float)(y - cy);
+
+                float r =
+                    sqrtf(dx * dx + dy * dy);
+
+                float a =
+                    atan2f(dy, dx);
+
+                float tunnel =
+                    1.0f +
+                    sinf(
+                        r * .025f -
+                        t * 5.0f +
+                        sinf(a * 6.0f) * 2.0f
+                    ) * .04f;
+
+                float nr =
+                    r * tunnel * zoom;
+
+                int sx =
+                    ClampI(
+                        (int)(cx + cosf(a) * nr),
+                        0,
+                        w - 1
+                    );
+
+                int sy =
+                    ClampI(
+                        (int)(cy + sinf(a) * nr),
+                        0,
+                        h - 1
+                    );
+
+                uint32_t p =
+                    buf.pixels[sy * w + sx];
+
+                float hue =
+                    sinf(r * .01f - t * 3.0f) *
+                    .18f;
+
+                buf.pixels[y * w + x] =
+                    ShiftHSL(
+                        p,
+                        hue * sd.dir,
+                        0.0f,
+                        0.0f
+                    );
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            buf.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+    }
+
+    DestroyBuffer(buf);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 54
+// Cellular / Voronoi-style distortion
+// ============================================================
+
+DWORD WINAPI GDIPayload54(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(54);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    int w = GetDeviceCaps(dc, HORZRES);
+    int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer buf;
+
+    if (!CreateBuffer(dc, buf, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    for (int frame = 0; frame < 160; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            buf.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        float t =
+            frame * .035f;
+
+        const int cell = 80;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float fx =
+                    x / (float)cell;
+
+                float fy =
+                    y / (float)cell;
+
+                float gx =
+                    floorf(fx);
+
+                float gy =
+                    floorf(fy);
+
+                float best = 999999.0f;
+
+                for (int oy = -1; oy <= 1; ++oy)
+                {
+                    for (int ox = -1; ox <= 1; ++ox)
+                    {
+                        float px =
+                            gx + ox +
+                            .5f *
+                            sinf(
+                                gy +
+                                oy +
+                                t
+                            );
+
+                        float py =
+                            gy + oy +
+                            .5f *
+                            cosf(
+                                gx +
+                                ox -
+                                t
+                            );
+
+                        float dx = fx - px;
+                        float dy = fy - py;
+
+                        float d =
+                            dx * dx +
+                            dy * dy;
+
+                        best =
+                            std::min(best, d);
+                    }
+                }
+
+                float edge =
+                    expf(-best * 35.0f);
+
+                buf.pixels[y * w + x] =
+                    ShiftHSL(
+                        buf.pixels[y * w + x],
+                        edge *
+                        sinf(t) *
+                        .3f,
+                        edge * .08f,
+                        0.0f
+                    );
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            buf.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+    }
+
+    DestroyBuffer(buf);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 55
+// Sine-folding distortion
+// ============================================================
+
+DWORD WINAPI GDIPayload55(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(55);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    int w = GetDeviceCaps(dc, HORZRES);
+    int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer buf;
+
+    if (!CreateBuffer(dc, buf, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    for (int frame = 0; frame < 230; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            buf.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        float t =
+            frame * .04f;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float nx =
+                    (x - w * .5f) /
+                    (float)w;
+
+                float ny =
+                    (y - h * .5f) /
+                    (float)h;
+
+                float q =
+                    sinf(
+                        nx * 17.0f +
+                        sinf(ny * 8.0f + t)
+                    );
+
+                float r =
+                    sinf(
+                        ny * 13.0f -
+                        cosf(nx * 9.0f + t)
+                    );
+
+                int sx =
+                    ClampI(
+                        x +
+                        (int)(
+                            q *
+                            (12 + sd.amp)
+                        ),
+                        0,
+                        w - 1
+                    );
+
+                int sy =
+                    ClampI(
+                        y +
+                        (int)(
+                            r *
+                            (12 + sd.amp)
+                        ),
+                        0,
+                        h - 1
+                    );
+
+                uint32_t p =
+                    buf.pixels[sy * w + sx];
+
+                buf.pixels[y * w + x] =
+                    ShiftHSL(
+                        p,
+                        (q - r) * .08f,
+                        0.0f,
+                        0.0f
+                    );
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            buf.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+    }
+
+    DestroyBuffer(buf);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 56
+// Radial chromatic aberration
+// ============================================================
+
+DWORD WINAPI GDIPayload56(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(56);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    int w = GetDeviceCaps(dc, HORZRES);
+    int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer buf;
+
+    if (!CreateBuffer(dc, buf, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    int cx = w / 2;
+    int cy = h / 2;
+
+    for (int frame = 0; frame < 260; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            buf.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        float t =
+            frame * .055f;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float dx = (float)(x - cx);
+                float dy = (float)(y - cy);
+
+                float r =
+                    sqrtf(dx * dx + dy * dy);
+
+                float factor =
+                    1.0f +
+                    sinf(
+                        r * .02f -
+                        t * 4.0f
+                    ) *
+                    .035f;
+
+                int rx =
+                    ClampI(
+                        cx + (int)(dx * factor * 1.025f),
+                        0,
+                        w - 1
+                    );
+
+                int gx =
+                    ClampI(
+                        cx + (int)(dx * factor),
+                        0,
+                        w - 1
+                    );
+
+                int bx =
+                    ClampI(
+                        cx + (int)(dx * factor * .975f),
+                        0,
+                        w - 1
+                    );
+
+                int ry =
+                    ClampI(
+                        cy + (int)(dy * factor * 1.025f),
+                        0,
+                        h - 1
+                    );
+
+                int gy =
+                    ClampI(
+                        cy + (int)(dy * factor),
+                        0,
+                        h - 1
+                    );
+
+                int by =
+                    ClampI(
+                        cy + (int)(dy * factor * .975f),
+                        0,
+                        h - 1
+                    );
+
+                int rr, rg, rb;
+
+                SplitRGB(
+                    buf.pixels[ry * w + rx],
+                    rr,
+                    rg,
+                    rb
+                );
+
+                int gr, gg, gb;
+
+                SplitRGB(
+                    buf.pixels[gy * w + gx],
+                    gr,
+                    gg,
+                    gb
+                );
+
+                int br, bg, bb;
+
+                SplitRGB(
+                    buf.pixels[by * w + bx],
+                    br,
+                    bg,
+                    bb
+                );
+
+                buf.pixels[y * w + x] =
+                    RGBPixel(
+                        rr,
+                        gg,
+                        bb
+                    );
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            buf.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+    }
+
+    DestroyBuffer(buf);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 57
+// Recursive mirror feedback
+// ============================================================
+
+DWORD WINAPI GDIPayload57(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(57);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    int w = GetDeviceCaps(dc, HORZRES);
+    int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer a;
+    GDIBuffer b;
+
+    if (!CreateBuffer(dc, a, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    if (!CreateBuffer(dc, b, w, h))
+    {
+        DestroyBuffer(a);
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    SetStretchBltMode(
+        a.dc,
+        HALFTONE
+    );
+
+    SetStretchBltMode(
+        b.dc,
+        HALFTONE
+    );
+
+    for (int frame = 0; frame < 350; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            a.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        float t =
+            frame * .035f;
+
+        int margin =
+            8 +
+            (int)(
+                sinf(t * 2.0f) *
+                (4 + sd.amp)
+            );
+
+        StretchBlt(
+            b.dc,
+            margin,
+            margin,
+            w - margin * 2,
+            h - margin * 2,
+            a.dc,
+            0,
+            0,
+            w,
+            h,
+            SRCCOPY
+        );
+
+        StretchBlt(
+            b.dc,
+            0,
+            0,
+            w,
+            h,
+            b.dc,
+            0,
+            0,
+            w,
+            h,
+            SRCINVERT
+        );
+
+        AlphaBlend(
+            a.dc,
+            0,
+            0,
+            w,
+            h,
+            b.dc,
+            0,
+            0,
+            w,
+            h,
+            {
+                AC_SRC_OVER,
+                0,
+                38,
+                0
+            }
+        );
+
+        int wobble =
+            (int)(
+                sinf(t * 3.0f) *
+                (5 + sd.amp)
+            );
+
+        BitBlt(
+            dc,
+            wobble,
+            0,
+            w - abs(wobble),
+            h,
+            a.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+    }
+
+    DestroyBuffer(a);
+    DestroyBuffer(b);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}

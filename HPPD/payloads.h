@@ -13,7 +13,7 @@
 // ============================================================
 // HPPD - effects demo
 //
-// Payloads 1-49.
+// Payloads 1-57.
 //
 // 1-12  original visual GDI effects (finite duration).
 // 13-24 fast visual GDI effects (5s, ESC aborts).
@@ -21,8 +21,9 @@
 //        ported from a public bytebeat/GDI-effects dump.
 //        No disk writes, no MBR, no privilege escalation,
 //        no BSOD, no audio playback.
+// 50-57 GDI demoscene FX pack (per-pixel remap/shaders).
 //
-// ESC aborts every payload (1-49); the popup's STOP button
+// ESC aborts every payload (1-57); the popup's STOP button
 // sets the same gFxStop latch.
 // Payloads 1-12 retain their original finite durations
 // unless aborted early.
@@ -376,3 +377,11 @@ DWORD WINAPI GDIPayload46(LPVOID);
 DWORD WINAPI GDIPayload47(LPVOID);
 DWORD WINAPI GDIPayload48(LPVOID);
 DWORD WINAPI GDIPayload49(LPVOID);
+DWORD WINAPI GDIPayload50(LPVOID);
+DWORD WINAPI GDIPayload51(LPVOID);
+DWORD WINAPI GDIPayload52(LPVOID);
+DWORD WINAPI GDIPayload53(LPVOID);
+DWORD WINAPI GDIPayload54(LPVOID);
+DWORD WINAPI GDIPayload55(LPVOID);
+DWORD WINAPI GDIPayload56(LPVOID);
+DWORD WINAPI GDIPayload57(LPVOID);
