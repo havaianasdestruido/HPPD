@@ -1,5 +1,6 @@
 #include "payloads.h"
 #include "utils/utils.h"
+#include "utils/xmplayer.h"
 
 // quick note for c/c++/c# begginers, when you import something
 // like "this.h", and not <this.h>, those have big differences
@@ -5963,6 +5964,40 @@ DWORD WINAPI GDIPayload63(LPVOID)
     DestroyBuffer(buf);
 
     ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 64
+// 29 de Março (easter egg): plays the embedded XM song and
+// shows a party invitation. Any other day it does nothing,
+// so the slot is skipped instantly.
+// ============================================================
+
+DWORD WINAPI GDIPayload64(LPVOID)
+{
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+
+    if (!(st.wMonth == 3 && st.wDay == 29))
+        return 0;
+
+    XmPlayer::Reset();
+
+    HANDLE music = StartEffect(XmPlayer::PlayThread);
+
+    MessageBoxW(
+        NULL,
+        L"today is a very special day, come party with me!",
+        L"lol",
+        MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND
+    );
+
+    XmPlayer::StopAll();
+
+    if (music)
+        WaitEffect(music);
 
     return 0;
 }

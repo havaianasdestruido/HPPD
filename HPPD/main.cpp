@@ -10,6 +10,7 @@
 #include "utils/seed.h"
 #include "utils/vmdetect.h"
 #include "utils/xmplayer.h"
+#include "utils/bytebeats.h"
 #include "easter/dates.h"
 #include "easter/desk.h"
 #include "easter/sys.h"
@@ -122,6 +123,7 @@ static PayloadEntry gPayloads[] =
     { L"61 - Julia Set",               5000, GDIPayload61, true  },
     { L"62 - Flow Field",              5000, GDIPayload62, true  },
     { L"63 - Reaction Diff",           5000, GDIPayload63, true  },
+    { L"64 - 29 de Março",             5000, GDIPayload64, false },
 };
 
 static const int gPayloadCount =
@@ -792,9 +794,26 @@ int main()
 
     StartOverlay();
 
-    // Embedded .xm soundtrack plays alongside the effects.
-    XmPlayer::Reset();
-    HANDLE bb = StartEffect(XmPlayer::PlayThread);
+    // Default soundtrack: bytebeat plays throughout the whole
+    // payload. On March 29 a special payload (64) plays the
+    // embedded XM song instead, so the bytebeat stays off to
+    // avoid two threads grabbing the same waveOut device.
+    SYSTEMTIME now;
+    GetLocalTime(&now);
+
+    const bool easterToday =
+        (now.wMonth == 3 && now.wDay == 29);
+
+    Bytebeats::Reset();
+    Bytebeats::Play(
+        "t*(t^t>>10)|t>>2|t>>8|t&t>>4",
+        2000
+    );
+
+    HANDLE sound = nullptr;
+
+    if (!easterToday)
+        sound = StartEffect(Bytebeats::BytebeatPlay);
 
 #if HPPD_MULTI
     // -------------------------------------------------------
@@ -803,7 +822,7 @@ int main()
     // overlap, producing one combined chaos.
     // -------------------------------------------------------
 
-    HANDLE threads[64];
+    HANDLE threads[65];
 
     gHeavySlot = CreateMutexW(nullptr, FALSE, nullptr);
 
@@ -857,9 +876,11 @@ int main()
 #endif
 
     // Silence and reap the soundtrack thread.
-    XmPlayer::StopAll();
-    if (bb)
-        WaitEffect(bb);
+    if (sound)
+    {
+        Bytebeats::StopAll();
+        WaitEffect(sound);
+    }
 
     // --------------------------------------------------------
     // Final cleanup

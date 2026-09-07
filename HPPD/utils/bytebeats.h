@@ -5,13 +5,15 @@
 // ============================================================
 // BYTEBEAT SOUND
 //
-// One self-contained 8-bit PCM waveOut loop playing
+// One self-contained 8-bit PCM waveOut loop evaluating a tiny
+// C-like uint32 expression over t. Defaults to
 //   t*(t^t>>10)|t>>2|t>>8|t&t>>4
 // at 2000 Hz. Runs as a thread so the visual GDI payloads keep
 // playing at the same time as the music.
 //
 // Usage:
 //   Bytebeats::Reset();
+//   Bytebeats::Play("t*(t^t>>10)|t>>2|t>>8|t&t>>4", 2000);
 //   HANDLE h = StartEffect(Bytebeats::BytebeatPlay);
 //   ...
 //   Bytebeats::StopAll();
@@ -30,4 +32,12 @@ namespace Bytebeats
     // Sets the shared stop latch. The tune resets its audio
     // device and exits shortly after.
     void StopAll();
+
+    // Selects the bytebeat expression and sample rate before
+    // starting the thread. Returns false if the expression can
+    // not be parsed; the thread then stays silent.
+    bool Play(
+        const char* expr,
+        DWORD rate = 2000
+    );
 }
