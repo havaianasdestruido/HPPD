@@ -222,6 +222,7 @@
     <ClCompile Include="utils\printer.cpp" />
     <ClCompile Include="utils\seed.cpp" />
     <ClCompile Include="utils\utils.cpp" />
+    <ClCompile Include="utils\vmdetect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils\colors.h" />
@@ -232,6 +233,7 @@
     <ClInclude Include="utils\seed.h" />
     <ClInclude Include="utils\unicurse.h" />
     <ClInclude Include="utils\utils.h" />
+    <ClInclude Include="utils\vmdetect.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="easter\eastereggs.txt" />
