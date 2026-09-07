@@ -501,6 +501,13 @@ DWORD WINAPI GDIPayload6(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         BitBlt(
             dcCopy,
             0,
@@ -621,6 +628,13 @@ DWORD WINAPI GDIPayload7(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         BitBlt(
             dcCopy,
@@ -756,6 +770,13 @@ DWORD WINAPI GDIPayload8(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         BitBlt(
             dcCopy,
@@ -912,6 +933,13 @@ DWORD WINAPI GDIPayload9(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         int j = sd.amp + rand() % 12;
 
         SetStretchBltMode(dcCopy, COLORONCOLOR);
@@ -1039,6 +1067,13 @@ DWORD WINAPI GDIPayload10(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         HBRUSH brush = CreateSolidBrush(
             RGB(
@@ -1171,6 +1206,13 @@ DWORD WINAPI GDIPayload11(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         SetStretchBltMode(
             dc,
             COLORONCOLOR
@@ -1296,6 +1338,13 @@ DWORD WINAPI GDIPayload12(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         int fx = (rand() + sd.phase * 3) % h;
 
@@ -4138,6 +4187,13 @@ DWORD WINAPI GDIPayload50(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         BitBlt(
             src.dc,
             0,
@@ -4305,6 +4361,13 @@ DWORD WINAPI GDIPayload51(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         BitBlt(
             src.dc,
             0,
@@ -4422,6 +4485,13 @@ DWORD WINAPI GDIPayload52(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         BitBlt(
             a.dc,
             0,
@@ -4524,6 +4594,13 @@ DWORD WINAPI GDIPayload53(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         BitBlt(
             buf.dc,
@@ -4651,6 +4728,13 @@ DWORD WINAPI GDIPayload54(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         BitBlt(
             buf.dc,
@@ -4786,6 +4870,13 @@ DWORD WINAPI GDIPayload55(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         BitBlt(
             buf.dc,
             0,
@@ -4912,6 +5003,13 @@ DWORD WINAPI GDIPayload56(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         BitBlt(
             buf.dc,
@@ -5092,6 +5190,13 @@ DWORD WINAPI GDIPayload57(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         BitBlt(
             a.dc,
             0,
@@ -5241,6 +5346,13 @@ DWORD WINAPI GDIPayload58(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         BitBlt(snap.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
 
         for (int i = 0; i < layers; ++i)
@@ -5332,6 +5444,13 @@ DWORD WINAPI GDIPayload59(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         BitBlt(src.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
 
@@ -5434,6 +5553,13 @@ DWORD WINAPI GDIPayload60(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         BitBlt(buf.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
 
         const int gate =
@@ -5535,6 +5661,13 @@ DWORD WINAPI GDIPayload61(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         BitBlt(buf.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
 
@@ -5640,6 +5773,13 @@ DWORD WINAPI GDIPayload62(LPVOID)
         if (FXAbort())
             break;
 
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
@@ -5734,6 +5874,13 @@ DWORD WINAPI GDIPayload63(LPVOID)
     {
         if (FXAbort())
             break;
+
+        // Repaint the whole screen every 4th frame only.
+        if ((frame & 3) != 0)
+        {
+            Sleep(1);
+            continue;
+        }
 
         for (int s = 0; s < steps; ++s)
         {

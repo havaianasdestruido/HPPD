@@ -24,6 +24,12 @@ Running on Windows XP requires OneCoreAPI to bypass the
 
 I used "Windows 7" and it worked flawlessly.
 
+---
+
+If you have troubles on Windows XP with DLLs, use this:
+https://aka.ms/vs/15/release/vc_redist.x86.exe (32-bit)
+https://aka.ms/vs/15/release/vc_redist.x64.exe (64-bit)
+
 -------------------------------------------------------
 
 TYPE:..... destructive (but not 100% yet)
@@ -39,6 +45,11 @@ WXP.
 -------------------------------------------------------
 
 THANKS TO:
+
+BZL and Crome and Dualtrax and Dubmood and Funky Fish
+and Nagz and Seablue and Sinny and Svenzzon and zabutom
+For making "The Megatune", the XM song i've used.
+(https://demozoo.org/music/102821/)
 
 Pankoza - I modded some of his payloads from his Bromine
 trojan (https://github.com/pankoza2-pl/BromineTrojan)
