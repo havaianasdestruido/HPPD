@@ -170,7 +170,7 @@ static void ShowAura()
     MessageBoxW(
         NULL,
         L"AURA.",
-        L"AURA.",
+        L". . .   A U R A   . . .",
         MB_OK | // eu ia montar uma logica de que se o
                 // user inputasse "no" ele matava algum proc
                 // do sistema, mas a preguica fala mais alto
@@ -183,15 +183,16 @@ static void ShowAura()
 
 static void ShowCursed()
 {
+    // current untested
+    wchar_t cursed[64];
+
+    GenerateRandomUnicode(cursed, 64);
+
     MessageBoxW(
         NULL,
-        L"", // random 'cursed' unicode text
-        L"", // random 'cursed' unicode text
-        MB_OK | // eu ia montar uma logica de que se o
-        // user inputasse "no" ele matava algum proc
-        // do sistema, mas a preguica fala mais alto
-        // tlgd ;)
-        MB_ICONWARNING
+        cursed,
+        cursed,
+        MB_OK | MB_ICONWARNING
     );
 
     EnumWindows(RenameWindowsProc, 0);
