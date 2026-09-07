@@ -21,3 +21,9 @@ circunstances.
    easter eggs that interact
    with the system, usually
    using the systme registry
+
+ - hw.cpp
+   ------
+   easter eggs that interact
+   with the hardware, usually
+   extremely destructible
