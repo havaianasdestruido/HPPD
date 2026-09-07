@@ -265,7 +265,7 @@ static LRESULT CALLBACK PopupProc(
 
 static int RunPopup()
 {
-    const wchar_t* cls = L"BromineVisualDemoPopup";
+    const wchar_t* cls = L"HPPDVisualDemoPopup";
 
     WNDCLASSW wc{};
 
@@ -302,7 +302,7 @@ static int RunPopup()
         CreateWindowExW(
             0,
             cls,
-            L"Bromine Visual Demo",
+            L"HPPD Visual Demo",
             style,
             (sw - ww) / 2,
             (sh - wh) / 2,
@@ -551,7 +551,7 @@ int main()
     MessageBoxW(
         NULL,
         L"Visual demo finished.",
-        L"Bromine Visual Demo",
+        L"HPPD Visual Demo",
         MB_OK |
         MB_ICONINFORMATION
     );
