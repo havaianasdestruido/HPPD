@@ -22,15 +22,6 @@
 volatile bool gFxStop = false;
 
 // ============================================================
-// Payloads 25-49 (appended) are ported from a public GDI-
-// effects dump. They cover visual GDI plus a small set of
-// window/cursor/process manipulations, but stay clear of disk
-// writes, MBR modification, privilege escalation, BSOD, and
-// audio playback. See the safety contract in main.cpp and
-// payloads.h for the full list.
-// ============================================================
-
-// ============================================================
 // PAYLOAD 1
 // Screen feedback / microscopic distortion
 // ============================================================
