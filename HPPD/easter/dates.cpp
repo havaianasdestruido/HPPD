@@ -5,7 +5,7 @@
 
 #include "dates.h"
 
-#include "unicurse.h"
+#include "../unicurse.h"
 
 // ============================================================
 // Dec 31st: drop a copy of the running exe as "cat vid.exe"
