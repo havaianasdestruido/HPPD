@@ -30,6 +30,9 @@
     <ClCompile Include="payloads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\bytebeats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="utils\seed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,6 +40,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="utils\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\xmplay\xmplay.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\xmplayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="easter\hw.cpp">
@@ -60,6 +69,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils\colors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\bytebeats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="easter\dates.h">
@@ -89,6 +101,17 @@
     <ClInclude Include="utils\fileinfect\fileinfect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="utils\xmplay\xmplay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\xmplayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="audio\song.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="easter\eastereggs.txt" />

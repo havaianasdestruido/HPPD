@@ -1,0 +1,5 @@
+#include "resource.h"
+
+// song.xm is linked into the executable as a raw binary blob.
+// Drop any other .xm file here (same name) and rebuild.
+IDR_XM_SONG RCDATA "song.xm"

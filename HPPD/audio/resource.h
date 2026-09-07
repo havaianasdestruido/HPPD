@@ -1,0 +1,6 @@
+#ifndef HPPD_AUDIO_RESOURCE_H
+#define HPPD_AUDIO_RESOURCE_H
+
+#define IDR_XM_SONG 101
+
+#endif

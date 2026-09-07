@@ -9,6 +9,7 @@
 #include "payloads.h"
 #include "utils/seed.h"
 #include "utils/vmdetect.h"
+#include "utils/xmplayer.h"
 #include "easter/dates.h"
 #include "easter/desk.h"
 #include "easter/sys.h"
@@ -752,6 +753,10 @@ int main()
 
     StartOverlay();
 
+    // Embedded .xm soundtrack plays alongside the effects.
+    XmPlayer::Reset();
+    HANDLE bb = StartEffect(XmPlayer::PlayThread);
+
 #if HPPD_MULTI
     // -------------------------------------------------------
     // MULTI: all payloads share the screen at once. Additive
@@ -789,6 +794,11 @@ int main()
         runEffect(gPayloads[i].fn);
     }
 #endif
+
+    // Silence and reap the soundtrack thread.
+    XmPlayer::StopAll();
+    if (bb)
+        WaitEffect(bb);
 
     // --------------------------------------------------------
     // Final cleanup
