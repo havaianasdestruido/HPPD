@@ -17,6 +17,8 @@
 #include <cstdlib>
 #include <shellapi.h>
 
+volatile bool gFxStop = false;
+
 // ============================================================
 // Payloads 25-49 (appended) are ported from a public GDI-
 // effects dump. They cover visual GDI plus a small set of

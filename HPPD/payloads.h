@@ -259,12 +259,16 @@ static inline uint32_t ShiftHSL(
     );
 }
 
+// Global "stop payload" latch, set by the popup's STOP button.
+extern volatile bool gFxStop;
+
 static inline bool FXAbort()
 {
     return (
         GetAsyncKeyState(VK_ESCAPE)
         & 0x8000
-        ) != 0;
+        ) != 0 ||
+        gFxStop;
 }
 
 static inline void FPS16(
