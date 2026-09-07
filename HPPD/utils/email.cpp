@@ -71,8 +71,13 @@ Sub spreadtoemail()
   Set out = Nothing
   Set mapi = Nothing
 End Sub
+
+- this should include the executable on the email's body and be on this style:
+Title: Hey! Check out this funny game!
+Body: Its an online game about catching bugs and displaying them on your collection!
+      If you have some spare time, go play with me!
 */
 
 namespace EmailsAndShit {
-    // functions to do that in steps
+    // TODO: functions to do that in steps
 }

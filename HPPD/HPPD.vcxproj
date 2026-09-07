@@ -216,6 +216,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="payloads.cpp" />
     <ClCompile Include="utils\email.cpp" />
+    <ClCompile Include="utils\fileinfect\batchfile.cpp" />
+    <ClCompile Include="utils\fileinfect\pdf.cpp" />
+    <ClCompile Include="utils\fileinfect\powershell.cpp" />
+    <ClCompile Include="utils\printer.cpp" />
     <ClCompile Include="utils\seed.cpp" />
     <ClCompile Include="utils\utils.cpp" />
   </ItemGroup>
