@@ -211,6 +211,7 @@
   <ItemGroup>
     <ClCompile Include="easter\dates.cpp" />
     <ClCompile Include="easter\desk.cpp" />
+    <ClCompile Include="easter\hw.cpp" />
     <ClCompile Include="easter\sys.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="payloads.cpp" />
@@ -226,6 +227,9 @@
     <ClInclude Include="seed.h" />
     <ClInclude Include="unicurse.h" />
     <ClInclude Include="utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="easter\eastereggs.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

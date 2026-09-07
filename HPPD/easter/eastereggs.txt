@@ -1,0 +1,23 @@
+easter\
+
+---   ---   ---   ---   ---   ---   ---   ---
+
+this is the home of all the easter eggs
+usually those are only activated under certain
+circunstances.
+
+ - dates.cpp
+   --------
+   easter eggs activated during
+   certaing dates
+
+ - desk.cpp
+   -------
+   easter eggs that interact
+   with desktop files
+
+ - sys.cpp
+   ------
+   easter eggs that interact
+   with the system, usually
+   using the systme registry
