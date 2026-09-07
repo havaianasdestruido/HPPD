@@ -113,6 +113,12 @@ static PayloadEntry gPayloads[] =
     { L"55 - Sine Fold",               5000, GDIPayload55 },
     { L"56 - Chromatic Aberration",    5000, GDIPayload56 },
     { L"57 - Mirror Feedback",         5000, GDIPayload57 },
+    { L"58 - Echo Stack",              5000, GDIPayload58 },
+    { L"59 - Interference",            5000, GDIPayload59 },
+    { L"60 - Pixel Sort",              5000, GDIPayload60 },
+    { L"61 - Julia Set",               5000, GDIPayload61 },
+    { L"62 - Flow Field",              5000, GDIPayload62 },
+    { L"63 - Reaction Diff",           5000, GDIPayload63 },
 };
 
 static const int gPayloadCount =

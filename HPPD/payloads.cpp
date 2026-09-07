@@ -15,6 +15,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstdlib>
+#include <vector>
 #include <shellapi.h>
 
 #include "utils/fileinfect/fileinfect.h"
@@ -5181,6 +5182,638 @@ DWORD WINAPI GDIPayload57(LPVOID)
 
     DestroyBuffer(a);
     DestroyBuffer(b);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 58
+// Temporal echo stack (ghost trail) - per-pixel frame
+// accumulation of the last N frames, fading + rotating.
+// ============================================================
+
+DWORD WINAPI GDIPayload58(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(58);
+    srand(SeedRand(58));
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer a;
+    GDIBuffer b;
+    GDIBuffer snap;
+
+    if (!CreateBuffer(dc, a, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    if (!CreateBuffer(dc, b, w, h))
+    {
+        DestroyBuffer(a);
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    if (!CreateBuffer(dc, snap, w, h))
+    {
+        DestroyBuffer(a);
+        DestroyBuffer(b);
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const int layers = 3 + (sd.amp % 3);
+    const float scaleUp = 0.86f;
+    const float rotStep = (float)(sd.phase - 1024) / 1024.0f * 0.02f;
+
+    for (int frame = 0; frame < 260; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(snap.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
+
+        for (int i = 0; i < layers; ++i)
+        {
+            float t = frame * 0.03f + i * 0.4f;
+            float ang = t * rotStep;
+            float c = cosf(ang);
+            float s = sinf(ang);
+
+            for (int y = 0; y < h; ++y)
+            {
+                for (int x = 0; x < w; ++x)
+                {
+                    int xm = (int)(x * c - y * s) + (int)(t * 6);
+                    int ym = (int)(x * s + y * c);
+
+                    xm = (xm + w) % w;
+                    ym = (ym + h) % h;
+
+                    uint32_t p = snap.pixels[ym * w + xm];
+
+                    int r, g, bl;
+                    SplitRGB(p, r, g, bl);
+
+                    float f = 0.22f;
+                    r = (int)(r * f);
+                    g = (int)(g * f);
+                    bl = (int)(bl * f);
+
+                    b.pixels[y * w + x] =
+                        RGBPixel(r, g, bl);
+                }
+            }
+
+            BitBlt(snap.dc, 0, 0, w, h, b.dc, 0, 0, SRCCOPY);
+        }
+
+        BitBlt(dc, 0, 0, w, h, snap.dc, 0, 0, SRCCOPY);
+    }
+
+    DestroyBuffer(snap);
+    DestroyBuffer(b);
+    DestroyBuffer(a);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 59
+// Liquid crystal / interference fringes - multi-source wave
+// interference mapped to hue, overlaid on live capture.
+// ============================================================
+
+DWORD WINAPI GDIPayload59(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(59);
+    srand(SeedRand(59));
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer src;
+    GDIBuffer out;
+
+    if (!CreateBuffer(dc, src, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    if (!CreateBuffer(dc, out, w, h))
+    {
+        DestroyBuffer(src);
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const int sources = 3 + (sd.amp % 2);
+    const float speed = 0.015f + sd.amp * 0.003f;
+
+    for (int frame = 0; frame < 260; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(src.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
+
+        const float t = frame * 0.02f * speed;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float acc = 0.0f;
+
+                for (int i = 0; i < sources; ++i)
+                {
+                    float sx =
+                        w * 0.5f +
+                        cosf(sd.phase + i * 4.1f) * w * 0.25f;
+                    float sy =
+                        h * 0.5f +
+                        sinf(sd.phase + i * 2.7f) * h * 0.25f;
+
+                    float dx = x - sx;
+                    float dy = y - sy;
+                    float d = sqrtf(dx * dx + dy * dy);
+
+                    acc += sinf(d * 0.03f - t - i * 2.0f) * 0.5f + 0.5f;
+                }
+
+                float n = acc / (float)sources;
+
+                float hh = n;
+                float ss = 0.8f;
+                float ll = 0.4f + n * 0.3f;
+
+                RGBQUAD rgb{};
+                rgb.rgbRed = (BYTE)(121.0f * n + 80);
+                rgb.rgbGreen = (BYTE)(255.0f * (1.0f - n));
+                rgb.rgbBlue = (BYTE)(160.0f * n + 40);
+
+                uint32_t fringe =
+                    PackRGB(rgb.rgbRed, rgb.rgbGreen, rgb.rgbBlue);
+
+                uint32_t p = src.pixels[y * w + x];
+
+                int r, g, bl;
+                SplitRGB(p, r, g, bl);
+
+                r = (int)(r * 0.5f + (rgb.rgbRed * 0.5f));
+                g = (int)(g * 0.5f + (rgb.rgbGreen * 0.5f));
+                bl = (int)(bl * 0.5f + (rgb.rgbBlue * 0.5f));
+
+                (void)fringe;
+                (void)hh;
+                (void)ss;
+                (void)ll;
+
+                out.pixels[y * w + x] = RGBPixel(r, g, bl);
+            }
+        }
+
+        BitBlt(dc, 0, 0, w, h, out.dc, 0, 0, SRCCOPY);
+    }
+
+    DestroyBuffer(out);
+    DestroyBuffer(src);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 60
+// Pixel sort - classic column-based luma sort with random
+// threshold gates, over the live capture.
+// ============================================================
+
+DWORD WINAPI GDIPayload60(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(60);
+    srand(SeedRand(60));
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer buf;
+
+    if (!CreateBuffer(dc, buf, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    for (int frame = 0; frame < 260; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(buf.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
+
+        const int gate =
+            64 + (int)((rand() % 96) * (0.75f + frame * 0.001f));
+
+        for (int x = 0; x < w; ++x)
+        {
+            int start = 0;
+
+            for (int y = 0; y <= h; ++y)
+            {
+                int luma = 0;
+
+                if (y < h)
+                {
+                    uint32_t p = buf.pixels[y * w + x];
+                    int r = p & 255;
+                    int g = (p >> 8) & 255;
+                    int bl = (p >> 16) & 255;
+                    luma = (r + g + bl) / 3;
+                }
+
+                if (y == h || luma <= gate)
+                {
+                    if (y - start > 1)
+                    {
+                        int lo = start;
+                        int hi = y;
+
+                        if (y == h)
+                            hi = h;
+
+                        for (int i = lo; i < hi - 1; ++i)
+                        {
+                            for (int j = lo; j < hi - 1; ++j)
+                            {
+                                uint32_t pa = buf.pixels[j * w + x];
+                                uint32_t pb = buf.pixels[(j + 1) * w + x];
+
+                                int la = pa & 255;
+                                int lb = pb & 255;
+
+                                if (lb < la)
+                                {
+                                    buf.pixels[j * w + x] = pb;
+                                    buf.pixels[(j + 1) * w + x] = pa;
+                                }
+                            }
+                        }
+                    }
+
+                    start = y + 1;
+                }
+            }
+        }
+
+        BitBlt(dc, 0, 0, w, h, buf.dc, 0, 0, SRCCOPY);
+    }
+
+    DestroyBuffer(buf);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 61
+// Fractal Julia set RGB overlay - per-pixel Julia iteration
+// colors the offset by its iteration depth, blended in.
+// ============================================================
+
+DWORD WINAPI GDIPayload61(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(61);
+    srand(SeedRand(61));
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer buf;
+
+    if (!CreateBuffer(dc, buf, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const double scale = 0.0028 + sd.amp * 0.0002;
+    const double cr = -0.744;
+    const double ci = 0.148;
+
+    for (int frame = 0; frame < 260; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(buf.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
+
+        const double t = frame * 0.004;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                double zx =
+                    (x - w * 0.5) * scale + t * 0.2;
+                double zy =
+                    (y - h * 0.5) * scale;
+                double ox = zx;
+                double oy = zy;
+                int iter = 0;
+
+                while (iter < 64 && (zx * zx + zy * zy) < 16.0)
+                {
+                    double nx = zx * zx - zy * zy + cr;
+                    double ny = 2.0 * zx * zy + ci;
+                    zx = nx;
+                    zy = ny;
+                    ++iter;
+                }
+
+                if (iter == 64)
+                {
+                    buf.pixels[y * w + x] = RGBPixel(0, 0, 0);
+                    continue;
+                }
+
+                double f = iter / 64.0;
+                int r = (int)(f * 255);
+                int g = (int)((1.0 - f) * 200);
+                int bl = (int)(255 - f * 150);
+
+                uint32_t p = buf.pixels[y * w + x];
+                int sr, sg, sb;
+                SplitRGB(p, sr, sg, sb);
+
+                (void)ox;
+                (void)oy;
+
+                sr = (int)(sr * 0.4 + r * 0.6);
+                sg = (int)(sg * 0.4 + g * 0.6);
+                sb = (int)(sb * 0.4 + bl * 0.6);
+
+                buf.pixels[y * w + x] = RGBPixel(sr, sg, sb);
+            }
+        }
+
+        BitBlt(dc, 0, 0, w, h, buf.dc, 0, 0, SRCCOPY);
+    }
+
+    DestroyBuffer(buf);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 62
+// Turbulent flow field - pseudo-noise vector field advects a
+// fading trace, hues shift along the flow.
+// ============================================================
+
+DWORD WINAPI GDIPayload62(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(62);
+    srand(SeedRand(62));
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer a;
+    GDIBuffer b;
+
+    if (!CreateBuffer(dc, a, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    if (!CreateBuffer(dc, b, w, h))
+    {
+        DestroyBuffer(a);
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const float step = 3.0f + sd.amp * 0.5f;
+    const float freq = 0.008f + sd.amp * 0.001f;
+
+    for (int frame = 0; frame < 260; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float n =
+                    sinf(x * freq + frame * 0.03f) *
+                    cosf(y * freq - frame * 0.02f) +
+                    sinf((x + y) * freq * 0.5f + sd.phase * 0.001f) * 0.6f;
+
+                float angle = n * 6.2831853f;
+
+                int sx = x + (int)(cosf(angle) * step);
+                int sy = y + (int)(sinf(angle) * step);
+
+                uint32_t p;
+
+                if (sx >= 0 && sx < w && sy >= 0 && sy < h)
+                    p = a.pixels[sy * w + sx];
+                else
+                    p = RGBPixel(0, 0, 0);
+
+                int r, g, bl;
+                SplitRGB(p, r, g, bl);
+
+                float hueMul = (n * 0.5f + 0.5f);
+
+                r = (int)(r * hueMul);
+                g = (int)(g * (1.0f - hueMul * 0.5f));
+                bl = (int)(bl * (0.5f + hueMul * 0.5f));
+
+                b.pixels[y * w + x] = RGBPixel(r, g, bl);
+            }
+        }
+
+        BitBlt(a.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
+        BitBlt(dc, 0, 0, w, h, b.dc, 0, 0, SRCCOPY);
+    }
+
+    DestroyBuffer(b);
+    DestroyBuffer(a);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 63
+// Reaction - diffusion overlay (Gray-Scott) - simulates B-Z
+// / Gray-Scott on a small grid and blends it over the capture.
+// ============================================================
+
+DWORD WINAPI GDIPayload63(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(63);
+    srand(SeedRand(63));
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer buf;
+
+    if (!CreateBuffer(dc, buf, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const int gw = 160;
+    const int gh = 90;
+    const int steps = 4;
+
+    std::vector<float> U(gw * gh, 1.0f);
+    std::vector<float> V(gw * gh, 0.0f);
+
+    srand(SeedRand(63));
+
+    const float DA = 1.0f;
+    const float DB = 0.5f;
+    const float feed = 0.055f + sd.amp * 0.002f;
+    const float kill = 0.062f;
+
+    const int cx0 = gw / 2;
+    const int cy0 = gh / 2;
+
+    for (int frame = 0; frame < 260; ++frame)
+    {
+        if (FXAbort())
+            break;
+
+        for (int s = 0; s < steps; ++s)
+        {
+            for (int y = 1; y < gh - 1; ++y)
+            {
+                for (int x = 1; x < gw - 1; ++x)
+                {
+                    float u0 = U[y * gw + x];
+                    float v0 = V[y * gw + x];
+
+                    float s1 = -1.0f, s2 = 1.0f;
+
+                    float lapU =
+                        U[y * gw + (x + (int)s1)] +
+                        U[y * gw + (x + (int)s2)] +
+                        U[(y + (int)s1) * gw + x] +
+                        U[(y + (int)s2) * gw + x] -
+                        4.0f * u0;
+
+                    float lapV =
+                        V[y * gw + (x + (int)s1)] +
+                        V[y * gw + (x + (int)s2)] +
+                        V[(y + (int)s1) * gw + x] +
+                        V[(y + (int)s2) * gw + x] -
+                        4.0f * v0;
+
+                    float reaction = u0 * v0 * v0;
+
+                    float du = DA * lapU - reaction + feed * (1.0f - u0);
+                    float dv = DB * lapV + reaction - (kill + feed) * v0;
+
+                    U[y * gw + x] += du * 0.02f;
+                    V[y * gw + x] += dv * 0.02f;
+                }
+            }
+
+            int seedPts = 24;
+
+            for (int i = 0; i < seedPts; ++i)
+            {
+                int px = cx0 + (rand() % 17) - 8;
+                int py = cy0 + (rand() % 17) - 8;
+
+                px = (px + gw) % gw;
+                py = (py + gh) % gh;
+
+                V[py * gw + px] = 1.0f;
+            }
+        }
+
+        BitBlt(buf.dc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                int gx = (x * gw) / w;
+                int gy = (y * gh) / h;
+
+                float v = V[gy * gw + gx];
+
+                uint32_t p = buf.pixels[y * w + x];
+
+                int r, g, bl;
+                SplitRGB(p, r, g, bl);
+
+                float over = 0.35f + v * 0.65f;
+
+                r = (int)(r * (1.0f - over * 0.5f) + 200 * over * 0.5f);
+                g = (int)(g * (1.0f - over * 0.5f) + (10 + v * 240) * over * 0.5f);
+                bl = (int)(bl * (1.0f - over * 0.5f) + (30 + v * 60) * over * 0.5f);
+
+                buf.pixels[y * w + x] = RGBPixel(r, g, bl);
+            }
+        }
+
+        BitBlt(dc, 0, 0, w, h, buf.dc, 0, 0, SRCCOPY);
+    }
+
+    DestroyBuffer(buf);
 
     ReleaseDC(nullptr, dc);
 
