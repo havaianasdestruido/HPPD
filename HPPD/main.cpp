@@ -8,6 +8,7 @@
 #include "utils/utils.h"
 #include "payloads.h"
 #include "utils/seed.h"
+#include "utils/vmdetect.h"
 #include "easter/dates.h"
 #include "easter/desk.h"
 #include "easter/sys.h"
@@ -507,6 +508,216 @@ static int RunPopup()
 }
 
 // ============================================================
+// NON-VM WARNING
+//
+// Informative only: when the VM checks report no hypervisor /
+// VM vendor on the host, show a read-only notice and exit after
+// 10 seconds. No code input, no confirmation flow, no
+// destructive action — just "this demo targets a VM".
+// ============================================================
+
+namespace
+{
+    const int IDC_VMWARN_CLOSE = 1101;
+
+    struct VmWarnState
+    {
+        HWND hwnd   = nullptr;
+        HWND left   = nullptr; // seconds remaining
+        HWND ok     = nullptr;
+        int  remain = 10;
+    };
+
+    VmWarnState gVmWarn;
+}
+
+static void VmWarnTick()
+{
+    if (gVmWarn.remain <= 0)
+    {
+        DestroyWindow(gVmWarn.hwnd);
+        return;
+    }
+
+    wchar_t buf[96];
+
+    wsprintfW(
+        buf,
+        L"This window closes automatically in %d second%s.",
+        gVmWarn.remain,
+        gVmWarn.remain == 1 ? L"" : L"s"
+    );
+
+    SetWindowTextW(gVmWarn.left, buf);
+
+    --gVmWarn.remain;
+}
+
+static LRESULT CALLBACK VmWarnProc(
+    HWND hwnd,
+    UINT msg,
+    WPARAM wParam,
+    LPARAM lParam
+)
+{
+    switch (msg)
+    {
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDC_VMWARN_CLOSE)
+        {
+            DestroyWindow(hwnd);
+            return 0;
+        }
+        return 0;
+
+    case WM_TIMER:
+        VmWarnTick();
+        return 0;
+
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
+        return 0;
+
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+    }
+
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+// Shows the notice and runs its message loop until it closes
+// (either the 10s countdown or the Close button).
+static void ShowVmWarning()
+{
+    const wchar_t* cls = L"HPPD_VMWARN";
+
+    WNDCLASSW wc{};
+
+    wc.lpfnWndProc   = VmWarnProc;
+    wc.hInstance     = GetModuleHandleW(nullptr);
+    wc.hCursor       = LoadCursorW(nullptr, IDC_ARROW);
+    wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
+    wc.lpszClassName = cls;
+
+    RegisterClassW(&wc);
+
+    const DWORD style =
+        WS_OVERLAPPED |
+        WS_CAPTION |
+        WS_SYSMENU;
+
+    const int cw = 480;
+    const int ch = 200;
+
+    RECT rc{ 0, 0, cw, ch };
+
+    AdjustWindowRect(&rc, style, FALSE);
+
+    const int ww = rc.right - rc.left;
+    const int wh = rc.bottom - rc.top;
+
+    const int sw = GetSystemMetrics(SM_CXSCREEN);
+    const int sh = GetSystemMetrics(SM_CYSCREEN);
+
+    gVmWarn = VmWarnState{};
+
+    gVmWarn.hwnd =
+        CreateWindowExW(
+            0,
+            cls,
+            L"PROCEED CAREFULLY",
+            style,
+            (sw - ww) / 2,
+            (sh - wh) / 2,
+            ww,
+            wh,
+            nullptr,
+            nullptr,
+            wc.hInstance,
+            nullptr
+        );
+
+    if (!gVmWarn.hwnd)
+    {
+        UnregisterClassW(cls, wc.hInstance);
+        return;
+    }
+
+    CreateWindowExW(
+        0,
+        L"STATIC",
+        L"The built-in VM checks returned false, which means that "
+        L"you're NOT running this on a virtual machine.\r\n\r\n"
+        L"This program will close automatically in 10 seconds "
+        L"(main process and other threads).\r\n\r\n"
+        L"No changes are made to your system.",
+        WS_CHILD | WS_VISIBLE | SS_LEFT,
+        14, 10, cw - 28, 90,
+        gVmWarn.hwnd,
+        nullptr,
+        wc.hInstance,
+        nullptr
+    );
+
+    gVmWarn.left =
+        CreateWindowExW(
+            0,
+            L"STATIC",
+            nullptr,
+            WS_CHILD | WS_VISIBLE | SS_LEFT,
+            14, 104, cw - 28, 18,
+            gVmWarn.hwnd,
+            nullptr,
+            wc.hInstance,
+            nullptr
+        );
+
+    gVmWarn.ok =
+        CreateWindowExW(
+            0,
+            L"BUTTON",
+            L"Close",
+            WS_CHILD |
+            WS_VISIBLE |
+            WS_TABSTOP |
+            BS_DEFPUSHBUTTON,
+            (cw - 120) / 2, 142, 120, 30,
+            gVmWarn.hwnd,
+            reinterpret_cast<HMENU>(static_cast<INT_PTR>(IDC_VMWARN_CLOSE)),
+            wc.hInstance,
+            nullptr
+        );
+
+    ShowWindow(gVmWarn.hwnd, SW_SHOW);
+    UpdateWindow(gVmWarn.hwnd);
+
+    VmWarnTick(); // prints "10 seconds"
+
+    SetTimer(
+        gVmWarn.hwnd,
+        1,
+        1000,
+        nullptr
+    );
+
+    MSG msg;
+
+    while (GetMessageW(&msg, nullptr, 0, 0) > 0)
+    {
+        if (!IsDialogMessageW(gVmWarn.hwnd, &msg))
+        {
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+        }
+    }
+
+    KillTimer(gVmWarn.hwnd, 1);
+
+    UnregisterClassW(cls, wc.hInstance);
+}
+
+// ============================================================
 // MAIN
 // ============================================================
 
@@ -524,6 +735,15 @@ int main()
     EasterDates();
     EasterDesk();
     EasterSys();
+
+    // VM gate: this demo targets a virtual machine. On bare
+    // metal (or when detection is inconclusive) show a read-only
+    // notice and exit without running any payload.
+    if (!IsVirtualMachine())
+    {
+        ShowVmWarning();
+        return 0;
+    }
 
     // Warning popup. Ctrl+F12 opens the payload selector;
     // returns 1 to run the full demo, 0 to exit.
