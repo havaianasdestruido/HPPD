@@ -8,6 +8,9 @@
 #include "utils.h"
 #include "payloads.h"
 #include "seed.h"
+#include "easter/dates.h"
+#include "easter/desk.h"
+#include "easter/sys.h"
 
 // ============================================================
 // HPPD - effects demo
@@ -500,6 +503,11 @@ int main()
 
     printf("Global SEED: %u\n", gSeed);
     fflush(stdout);
+
+    // Easter eggs: date-based, desktop-based, system-based.
+    EasterDates();
+    EasterDesk();
+    EasterSys();
 
     // Warning popup. Ctrl+F12 opens the payload selector;
     // returns 1 to run the full demo, 0 to exit.

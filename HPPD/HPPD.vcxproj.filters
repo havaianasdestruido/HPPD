@@ -15,6 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="easter\dates.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="easter\desk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="easter\sys.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,6 +39,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="colors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="easter\dates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="easter\desk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="easter\sys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="payloads.h">
