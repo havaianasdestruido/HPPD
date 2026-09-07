@@ -22,8 +22,10 @@
 //        No disk writes, no MBR, no privilege escalation,
 //        no BSOD, no audio playback.
 //
-// ESC aborts Payloads 13-49.
-// Payloads 1-12 retain their original finite durations.
+// ESC aborts every payload (1-49); the popup's STOP button
+// sets the same gFxStop latch.
+// Payloads 1-12 retain their original finite durations
+// unless aborted early.
 // ============================================================
 
 // ============================================================

@@ -67,6 +67,9 @@ DWORD WINAPI GDIPayload1(LPVOID)
 
     for (int frame = 0; frame < 900; ++frame)
     {
+        if (FXAbort())
+            break;
+
         StretchBlt(
             dcCopy,
             (rand() % 3) * sd.dir,
@@ -157,6 +160,9 @@ DWORD WINAPI GDIPayload2(LPVOID)
 
     for (int frame = 0; frame < 600; ++frame)
     {
+        if (FXAbort())
+            break;
+
         SetStretchBltMode(dcCopy, COLORONCOLOR);
         SetStretchBltMode(dc, COLORONCOLOR);
 
@@ -236,6 +242,9 @@ DWORD WINAPI GDIPayload3(LPVOID)
 
     for (int i = 0; i < 300 * sd.amp / 4; ++i)
     {
+        if (FXAbort())
+            break;
+
         if (errorIcon)
         {
             DrawIcon(
@@ -298,7 +307,7 @@ DWORD WINAPI GDIPayload4(LPVOID)
 
             //Sleep(rand() % 20);
 
-            if ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0)
+            if (FXAbort())
             {
                 ReleaseDC(NULL, dc);
                 return 0;
@@ -372,6 +381,9 @@ DWORD WINAPI GDIPayload5(LPVOID)
 
     for (int frame = 0; frame < 600; ++frame)
     {
+        if (FXAbort())
+            break;
+
         BitBlt(
             dcCopy,
             (rand() % 10) * sd.dir,
@@ -469,6 +481,9 @@ DWORD WINAPI GDIPayload6(LPVOID)
 
     for (int frame = 0; frame < 250; ++frame)
     {
+        if (FXAbort())
+            break;
+
         BitBlt(
             dcCopy,
             0,
@@ -587,6 +602,9 @@ DWORD WINAPI GDIPayload7(LPVOID)
 
     for (int frame = 0; frame < 220; ++frame)
     {
+        if (FXAbort())
+            break;
+
         BitBlt(
             dcCopy,
             0,
@@ -719,6 +737,9 @@ DWORD WINAPI GDIPayload8(LPVOID)
 
     for (int frame = 0; frame < 120; ++frame)
     {
+        if (FXAbort())
+            break;
+
         BitBlt(
             dcCopy,
             0,
@@ -871,6 +892,9 @@ DWORD WINAPI GDIPayload9(LPVOID)
 
     for (int frame = 0; frame < 150; ++frame)
     {
+        if (FXAbort())
+            break;
+
         int j = sd.amp + rand() % 12;
 
         SetStretchBltMode(dcCopy, COLORONCOLOR);
@@ -996,6 +1020,9 @@ DWORD WINAPI GDIPayload10(LPVOID)
 
     for (int frame = 0; frame < 300; ++frame)
     {
+        if (FXAbort())
+            break;
+
         HBRUSH brush = CreateSolidBrush(
             RGB(
                 rand() % (255 - sd.amp * 10),
@@ -1124,6 +1151,9 @@ DWORD WINAPI GDIPayload11(LPVOID)
 
     for (int frame = 0; frame < 300; ++frame)
     {
+        if (FXAbort())
+            break;
+
         SetStretchBltMode(
             dc,
             COLORONCOLOR
@@ -1247,6 +1277,9 @@ DWORD WINAPI GDIPayload12(LPVOID)
 
     for (int frame = 0; frame < 450; ++frame)
     {
+        if (FXAbort())
+            break;
+
         int fx = (rand() + sd.phase * 3) % h;
 
         if (rand() % (3 + sd.amp / 4) == 2)

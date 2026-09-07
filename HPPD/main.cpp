@@ -25,8 +25,9 @@
 // sense of "won't kill the machine", but they will fight the
 // user while they run.
 //
-// ESC aborts Payloads 13-49.
-// Payloads 1-12 retain their original finite durations.
+// ESC / STOP aborts Payloads 1-49.
+// Payloads 1-12 retain their original finite durations
+// unless aborted early.
 //
 // A global SEED is picked once at startup and printed to the
 // console. Each payload derives its own variant from it, so
@@ -40,8 +41,7 @@
 // ============================================================
 
 // ============================================================
-// PAYLOAD CATALOG (13-24 run; 1-12 are kept commented out
-// for compatibility with the default build).
+// PAYLOAD CATALOG (1-49)
 // ============================================================
 
 struct PayloadEntry
@@ -53,7 +53,19 @@ struct PayloadEntry
 
 static PayloadEntry gPayloads[] =
 {
-    { L"13 - Chromatic Plasma",        5000, GDIPayload13 },
+    { L"01 - Screen Feedback",          5000, GDIPayload1  },
+    { L"02 - Pixelation Zoom",          5000, GDIPayload2  },
+    { L"03 - Error Icons",              5000, GDIPayload3  },
+    { L"04 - XOR Inversion",            5000, GDIPayload4  },
+    { L"05 - Motion Blur",              5000, GDIPayload5  },
+    { L"06 - Hue Displacement",         5000, GDIPayload6  },
+    { L"07 - Plasma Hue",               5000, GDIPayload7  },
+    { L"08 - Fractal RGB",              5000, GDIPayload8  },
+    { L"09 - Zoom Hue Chaos",           5000, GDIPayload9  },
+    { L"10 - Color Pulse",              5000, GDIPayload10 },
+    { L"11 - RGB Noise Zoom",           5000, GDIPayload11 },
+    { L"12 - Horizontal Tear",          5000, GDIPayload12 },
+    { L"13 - Chromatic Plasma",         5000, GDIPayload13 },
     { L"14 - RGB Displacement",        5000, GDIPayload14 },
     { L"15 - Feedback Tunnel",         5000, GDIPayload15 },
     { L"16 - Fractured Screen",        5000, GDIPayload16 },
