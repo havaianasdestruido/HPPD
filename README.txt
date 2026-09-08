@@ -57,6 +57,11 @@ trojan (https://github.com/pankoza2-pl/BromineTrojan)
 ArTicZera - ditto, but on Lixo
 (https://github.com/ArTicZera/GDI-Trojan.Win32.Lixo)
 
+Other libs are credited on the source
+code, and everyone listed here and on the
+full source will be credited on the MBR
+once I finish everything
+
 -------------------------------------------------------
 
 LICENSE
