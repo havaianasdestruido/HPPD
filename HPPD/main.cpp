@@ -815,6 +815,27 @@ int main()
     if (!easterToday)
         sound = StartEffect(Bytebeats::BytebeatPlay);
 
+    // -------------------------------------------------------
+    // DEATH MONTH (December 00:00-00:01): only today's payload
+    // runs, replacing the full demo for that one minute. Day
+    // 12/NN -> GDIPDeathNN is mapped in gDeathMonth[].
+    // -------------------------------------------------------
+    const DeathMonthEntry* dm = DeathMonthToday();
+
+    if (dm)
+    {
+        if (const char* banner = DeathMonthName())
+            printf(">> %s\n", banner);
+
+        OverlaySetPayload(
+            dm->name,
+            dm->ms
+        );
+
+        runEffect(dm->fn);
+    }
+    else
+    {
 #if HPPD_MULTI
     // -------------------------------------------------------
     // MULTI: all payloads share the screen at once. Additive
@@ -874,6 +895,7 @@ int main()
         runEffect(gPayloads[i].fn);
     }
 #endif
+    }
 
     // Silence and reap the soundtrack thread.
     if (sound)

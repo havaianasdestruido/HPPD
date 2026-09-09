@@ -395,3 +395,59 @@ DWORD WINAPI GDIPayload61(LPVOID);
 DWORD WINAPI GDIPayload62(LPVOID);
 DWORD WINAPI GDIPayload63(LPVOID);
 DWORD WINAPI GDIPayload64(LPVOID);
+
+// ============================================================
+// DEATH MONTH (DECEMBER)
+//
+// Every December day, from midnight to 00:01, the demo runs a
+// dedicated payload for that exact day. gDeathMonth[] maps each
+// day 1..31 to a payload. Adding a future day is easy:
+//   1. write DWORD WINAPI Fn(LPVOID) in payloads.cpp
+//   2. add one row { day, L"label", 5000, Fn } to gDeathMonth[]
+// Days without a row (or outside the window) skip silently.
+// ============================================================
+
+struct DeathMonthEntry
+{
+    int day;                    // 1..31 (December)
+    const wchar_t* name;        // overlay label
+    DWORD ms;                   // overlay duration
+    LPTHREAD_START_ROUTINE fn;  // payload to run
+};
+
+DWORD WINAPI GDIPDeath01(LPVOID);
+DWORD WINAPI GDIPDeath02(LPVOID);
+DWORD WINAPI GDIPDeath03(LPVOID);
+DWORD WINAPI GDIPDeath04(LPVOID);
+DWORD WINAPI GDIPDeath05(LPVOID);
+DWORD WINAPI GDIPDeath06(LPVOID);
+DWORD WINAPI GDIPDeath07(LPVOID);
+DWORD WINAPI GDIPDeath08(LPVOID);
+DWORD WINAPI GDIPDeath09(LPVOID);
+DWORD WINAPI GDIPDeath10(LPVOID);
+DWORD WINAPI GDIPDeath11(LPVOID);
+DWORD WINAPI GDIPDeath12(LPVOID);
+DWORD WINAPI GDIPDeath13(LPVOID);
+DWORD WINAPI GDIPDeath14(LPVOID);
+DWORD WINAPI GDIPDeath15(LPVOID);
+DWORD WINAPI GDIPDeath16(LPVOID);
+DWORD WINAPI GDIPDeath17(LPVOID);
+DWORD WINAPI GDIPDeath18(LPVOID);
+DWORD WINAPI GDIPDeath19(LPVOID);
+DWORD WINAPI GDIPDeath20(LPVOID);
+DWORD WINAPI GDIPDeath21(LPVOID);
+DWORD WINAPI GDIPDeath22(LPVOID);
+DWORD WINAPI GDIPDeath23(LPVOID);
+DWORD WINAPI GDIPDeath24(LPVOID);
+DWORD WINAPI GDIPDeath25(LPVOID);
+DWORD WINAPI GDIPDeath26(LPVOID);
+DWORD WINAPI GDIPDeath27(LPVOID);
+DWORD WINAPI GDIPDeath28(LPVOID);
+DWORD WINAPI GDIPDeath29(LPVOID);
+DWORD WINAPI GDIPDeath30(LPVOID);
+DWORD WINAPI GDIPDeath31(LPVOID);
+
+extern const DeathMonthEntry gDeathMonth[];
+extern const int gDeathMonthCount;
+const DeathMonthEntry* DeathMonthToday(); // active entry or nullptr
+const char* DeathMonthName();             // banner label when active
