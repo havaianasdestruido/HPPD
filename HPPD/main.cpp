@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <cstdio>
 #include <intrin.h>
+#include <cwchar>
 
 #include "utils/utils.h"
 #include "payloads.h"
@@ -763,8 +764,66 @@ static void ShowVmWarning()
 // MAIN
 // ============================================================
 
+// True when the command line contains /nogui (or -nogui): run the
+// demo headless - no popup, no VM warning window, no final
+// MessageBox. Payloads themselves still draw to the screen.
+static bool HasCommandFlag(const wchar_t* flag)
+{
+    const LPWSTR cmd = GetCommandLineW();
+
+    if (!cmd)
+        return false;
+
+    for (LPWSTR p = cmd; ; )
+    {
+        while (*p == L' ' || *p == L'\t')
+            ++p;
+
+        if (*p == L'"')
+        {
+            ++p;
+
+            while (*p && *p != L'"')
+                ++p;
+
+            if (*p == L'"')
+                ++p;
+
+            if (!*p)
+                break;
+        }
+        else if (*p)
+        {
+            const wchar_t* start = p;
+
+            while (*p && *p != L' ' && *p != L'\t')
+                ++p;
+
+            const size_t n =
+                static_cast<size_t>(p - start);
+
+            if (
+                n > 1 &&
+                (start[0] == L'/' || start[0] == L'-') &&
+                _wcsnicmp(start + 1, flag, n - 1) == 0
+            )
+                return true;
+
+            if (!*p)
+                break;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return false;
+}
+
 int main()
 {
+    const bool noGui = HasCommandFlag(L"nogui");
     gSeed =
         static_cast<uint32_t>(
             GetTickCount64()
@@ -779,17 +838,20 @@ int main()
     EasterSys();
 
     // VM gate: this demo targets a virtual machine. On bare
-    // metal (or when detection is inconclusive) show a read-only
-    // notice and exit without running any payload.
+    // metal (or when detection is inconclusive) exit without
+    // running any payload. With /nogui it stays silent too.
     if (!IsVirtualMachine())
     {
-        ShowVmWarning();
+        if (!noGui)
+            ShowVmWarning();
+
         return 0;
     }
 
     // Warning popup. Ctrl+F12 opens the payload selector;
     // returns 1 to run the full demo, 0 to exit.
-    if (RunPopup() != 1)
+    // /nogui skips it and runs the demo directly.
+    if (!noGui && RunPopup() != 1)
         return 0;
 
     StartOverlay();
@@ -918,13 +980,16 @@ int main()
         RDW_ALLCHILDREN
     );
 
-    MessageBoxW(
-        NULL,
-        L"dead end.",
-        L"HPPD",
-        MB_OK |
-        MB_ICONINFORMATION
-    );
+    if (!noGui)
+    {
+        MessageBoxW(
+            NULL,
+            L"dead end.",
+            L"HPPD",
+            MB_OK |
+            MB_ICONINFORMATION
+        );
+    }
 
     return 0;
 }
