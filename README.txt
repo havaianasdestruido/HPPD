@@ -46,8 +46,8 @@ WXP.
 
 THANKS TO:
 
-BZL and Crome and Dualtrax and Dubmood and Funky Fish
-and Nagz and Seablue and Sinny and Svenzzon and zabutom
+BZL, Crome, Dualtrax, Dubmood, Funky Fish, Nagz, Seablue
+Sinny, Svenzzon and zabutom
 For making "The Megatune", the XM song i've used.
 (https://demozoo.org/music/102821/)
 
