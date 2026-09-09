@@ -23,7 +23,7 @@ namespace XmPlayer
     const DWORD kBytesPerSample  = 2;
     const DWORD kFramesPerBuffer = 4096;
     const int   kNumBuffers      = 3;
-    const int   kOutputShift     = 14;
+    const int   kOutputShift     = 16;
 
     namespace
     {
