@@ -174,6 +174,8 @@ static void Cracklol01()
 // July 6th: "AURA." + every window title becomes "sigmaxxing".
 // ============================================================
 
+static const wchar_t* gRenameTitle = L"sigmaxxing";
+
 static BOOL CALLBACK RenameWindowsProc(
     HWND hwnd,
     LPARAM
@@ -184,10 +186,16 @@ static BOOL CALLBACK RenameWindowsProc(
         GetWindowTextLengthW(hwnd) > 0
     )
     {
-        SetWindowTextW(hwnd, L"sigmaxxing");
+        SetWindowTextW(hwnd, gRenameTitle);
     }
 
     return TRUE;
+}
+
+static void RenameAll(const wchar_t* title)
+{
+    gRenameTitle = title;
+    EnumWindows(RenameWindowsProc, 0);
 }
 
 static void ShowAura()
@@ -208,7 +216,7 @@ static void ShowAura()
         MessageBoxW(NULL, L"ratio", L"L", MB_OK | MB_ICONEXCLAMATION);
     }
 
-    EnumWindows(RenameWindowsProc, 0);
+    RenameAll(L"sigmaxxing");
 }
 
 static void ShowCursed()
@@ -225,7 +233,46 @@ static void ShowCursed()
         MB_OK | MB_ICONWARNING
     );
 
-    EnumWindows(RenameWindowsProc, 0);
+    RenameAll(L"cursed");
+}
+
+static void ShowHalloween()
+{
+    MessageBoxW(
+        NULL,
+        L"TRICK OR TREAT..\r\n"
+        L"guess which one you got.",
+        L"haha",
+        MB_OK | MB_ICONWARNING
+    );
+
+    RenameAll(L"boo");
+}
+
+static void ShowValentine()
+{
+    MessageBoxW(
+        NULL,
+        L"happy valentine's day <3\r\n"
+        L"too bad the feeling aint mutual.",
+        L"<33",
+        MB_OK | MB_ICONEXCLAMATION
+    );
+
+    RenameAll(L"I <3 u");
+}
+
+static void ShowSixSixSix()
+{
+    MessageBoxW(
+        NULL,
+        L"6/6: the number of the beast.\r\n"
+        L"and it's coming for YOU.",
+        L"666",
+        MB_OK | MB_ICONWARNING
+    );
+
+    RenameAll(L"666");
 }
 
 void EasterDates()
@@ -238,4 +285,17 @@ void EasterDates()
 
     if (st.wMonth == 7 && st.wDay == 6)
         ShowAura();
+
+    // Friday the 13th, any month (wDayOfWeek: 0=Sun .. 5=Fri).
+    if (st.wDay == 13 && st.wDayOfWeek == 5)
+        ShowCursed();
+
+    if (st.wMonth == 10 && st.wDay == 31)
+        ShowHalloween();
+
+    if (st.wMonth == 2 && st.wDay == 14)
+        ShowValentine();
+
+    if (st.wMonth == 6 && st.wDay == 6)
+        ShowSixSixSix();
 }
