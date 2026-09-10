@@ -214,6 +214,7 @@
     <ClCompile Include="easter\hw.cpp" />
     <ClCompile Include="easter\sys.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="regfuk.cpp" />
     <ClCompile Include="start.cpp" />
     <ClCompile Include="payloads.cpp" />
     <ClCompile Include="utils\bytebeats.cpp" />
