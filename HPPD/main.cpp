@@ -18,6 +18,8 @@
 #include "easter/desk.h"
 #include "easter/sys.h"
 
+#include "regfuk.cpp"
+
 // ============================================================
 // HPPD - effects demo
 //
@@ -800,7 +802,8 @@ int main()
     printf("Global SEED: %u\n", gSeed);
     fflush(stdout);
 
-
+    RegFuk::Fuk(); // TODO: only run this the first time HPPD is ran
+                   // check it by using Tosse
 
     // Easter eggs: date-based, desktop-based, system-based.
     EasterDates();
