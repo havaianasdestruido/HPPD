@@ -34,7 +34,11 @@ https://aka.ms/vs/15/release/vc_redist.x64.exe (64-bit)
 
 TYPE:..... destructive (but not 100% yet)
 LANGUAGES: C++,
-	   C (headers)
+	       C (headers),
+           PowerShell (scripts for
+                       compressing
+                       the XM song
+                       used)
 PLATFORM:. WIN32 (x86 but supports x64)
 TESTED ON: Windows XP SP3 32-bit (VM), [1]
 	   Windows 10 64-bit (Main PC)
