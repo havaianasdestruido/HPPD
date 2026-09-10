@@ -223,9 +223,10 @@
     <ClCompile Include="utils\fileinfect\powershell.cpp" />
     <ClCompile Include="utils\printer.cpp" />
     <ClCompile Include="utils\reg.cpp" />
+    <ClCompile Include="utils\vmdetect.cpp" />
+    <ClCompile Include="utils\vmscan.cpp" />
     <ClCompile Include="utils\seed.cpp" />
     <ClCompile Include="utils\utils.cpp" />
-    <ClCompile Include="utils\vmdetect.cpp" />
     <ClCompile Include="utils\xmplay\xmplay.c">
       <DisableSpecificWarnings>4018;4244</DisableSpecificWarnings>
     </ClCompile>
@@ -245,6 +246,7 @@
     <ClInclude Include="utils\unicurse.h" />
     <ClInclude Include="utils\utils.h" />
     <ClInclude Include="utils\vmdetect.h" />
+    <ClInclude Include="utils\vmscan.h" />
     <ClInclude Include="utils\xmplay\xmplay.h" />
     <ClInclude Include="utils\xmplayer.h" />
   </ItemGroup>
