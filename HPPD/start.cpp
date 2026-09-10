@@ -12,6 +12,8 @@
 // 13-24 fast visual GDI effects (5s, ESC aborts).
 // 25-49 mixed visual + window/cursor/process manipulation.
 // 50-63 GDI demoscene FX packs (per-pixel shaders).
+// 69-72 FX pack 3 (Barcode Scan, Analog Static, Bayer Dither,
+//        Kaleido Pan).
 // 64   29 de Março easter egg (XM + party MessageBox).
 // 65   Eject Drives (ejeita todas as mídias ópticas/removíveis).
 // 66   War Print (imprime texto em todas as impressoras).

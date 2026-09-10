@@ -40,7 +40,7 @@
 // sense of "won't kill the machine", but they will fight the
 // user while they run.
 //
-// ESC / STOP aborts Payloads 1-57.
+// ESC / STOP aborts Payloads 1-74.
 // Payloads 1-12 retain their original finite durations
 // unless aborted early.
 //

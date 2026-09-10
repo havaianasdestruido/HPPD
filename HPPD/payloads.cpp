@@ -4033,7 +4033,7 @@ DWORD WINAPI GDIPayload49(LPVOID)
 }
 
 // ============================================================
-// GDI DEMOSCENE FX PACK (PAYLOADS 50-57)
+// GDI DEMOSCENE FX PACK (PAYLOADS 50-63, 69-72)
 //
 // Per-pixel remap/shaders running on a temporary screen-sized
 // DIB. Each payload grabs the screen HDC itself and owns a

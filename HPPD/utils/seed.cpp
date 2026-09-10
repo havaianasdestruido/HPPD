@@ -20,12 +20,12 @@ static uint32_t Mix32(uint32_t v)
 
 const SeedVariant& SeedGet(int payloadId)
 {
-    static SeedVariant variants[64];
+    static SeedVariant variants[128];
     static bool initialized = false;
 
     if (!initialized)
     {
-        for (int p = 0; p < 64; ++p)
+        for (int p = 0; p < 128; ++p)
         {
             uint32_t h =
                 Mix32(
