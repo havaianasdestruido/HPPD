@@ -6507,6 +6507,163 @@ DWORD WINAPI GDIPayload72(LPVOID)
 }
 
 // ============================================================
+// PAYLOAD 73
+// Mouse Swap: inverts the mouse buttons for several seconds,
+// then restores the previous state.
+// ============================================================
+
+DWORD WINAPI GDIPayload73(LPVOID)
+{
+    (void)SeedGet(73);
+
+    BOOL prev = SwapMouseButton(TRUE);
+
+    Sleep(8000);
+
+    SwapMouseButton(prev);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 74
+// Wallpaper Hell: replaces the desktop wallpaper with a
+// generated noise BMP for a few seconds, then restores it.
+// Nothing is persisted (no SPIF_UPDATEINIFILE).
+// ============================================================
+
+DWORD WINAPI GDIPayload74(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(74);
+
+    wchar_t original[MAX_PATH * 2]{};
+
+    SystemParametersInfoW(
+        SPI_GETDESKWALLPAPER,
+        0,
+        original,
+        0
+    );
+
+    wchar_t path[MAX_PATH]{};
+
+    GetTempPathW(
+        MAX_PATH,
+        path
+    );
+
+    wcscat_s(
+        path,
+        L"HPPD_noise.bmp"
+    );
+
+    // -- Generate a 800x600 static-noise 24bpp BMP ------------
+
+    const int bw = 800;
+    const int bh = 600;
+    const int pitch = ((bw * 3) + 3) & ~3;
+    const DWORD imageSize =
+        (DWORD)pitch * (DWORD)bh;
+
+    BITMAPFILEHEADER bfh{};
+    bfh.bfType = 0x4D42; // "BM"
+    bfh.bfSize =
+        54 + imageSize;
+    bfh.bfOffBits = 54;
+
+    BITMAPINFOHEADER bih{};
+    bih.biSize = sizeof(BITMAPINFOHEADER);
+    bih.biWidth = bw;
+    bih.biHeight = bh;
+    bih.biPlanes = 1;
+    bih.biBitCount = 24;
+    bih.biCompression = BI_RGB;
+    bih.biSizeImage = imageSize;
+
+    HANDLE f = CreateFileW(
+        path,
+        GENERIC_WRITE,
+        0,
+        nullptr,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    if (f != INVALID_HANDLE_VALUE)
+    {
+        DWORD wr = 0;
+
+        WriteFile(
+            f,
+            &bfh,
+            sizeof(bfh),
+            &wr,
+            nullptr
+        );
+
+        WriteFile(
+            f,
+            &bih,
+            sizeof(bih),
+            &wr,
+            nullptr
+        );
+
+        std::vector<uint8_t> line(
+            (size_t)pitch
+        );
+
+        uint32_t ns = sd.rng;
+
+        for (int y = 0; y < bh; ++y)
+        {
+            for (int x = 0; x < bw; ++x)
+            {
+                line[(size_t)x * 3 + 0] =
+                    (uint8_t)(FXRand(ns) & 255);
+                line[(size_t)x * 3 + 1] =
+                    (uint8_t)(FXRand(ns) & 255);
+                line[(size_t)x * 3 + 2] =
+                    (uint8_t)(FXRand(ns) & 255);
+            }
+
+            WriteFile(
+                f,
+                line.data(),
+                (DWORD)line.size(),
+                &wr,
+                nullptr
+            );
+        }
+
+        CloseHandle(f);
+    }
+
+    // -- Swap it in, hold, restore -----------------------------
+
+    SystemParametersInfoW(
+        SPI_SETDESKWALLPAPER,
+        0,
+        path,
+        0
+    );
+
+    Sleep(8000);
+
+    SystemParametersInfoW(
+        SPI_SETDESKWALLPAPER,
+        0,
+        original,
+        0
+    );
+
+    DeleteFileW(path);
+
+    return 0;
+}
+
+// ============================================================
 // DEATH MONTH (DECEMBER)
 //
 // Every December day, from midnight to 00:59, the demo runs a

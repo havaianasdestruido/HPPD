@@ -22,6 +22,8 @@
 // 70   Analog Static (TV fora do ar: chiado + banda branca).
 // 71   Bayer Dither (posterização 2-bit com matriz 4x4).
 // 72   Kaleido Pan (caleidoscópio 6-seção girando).
+// 73   Mouse Swap (inverte botões do mouse por 8s).
+// 74   Wallpaper Hell (wallpaper de chiado + restaura).
 // ============================================================
 
 PayloadEntry gPayloads[] =
@@ -97,6 +99,8 @@ PayloadEntry gPayloads[] =
     { L"70 - Analog Static",          5000, GDIPayload70, false },
     { L"71 - Bayer Dither",           5000, GDIPayload71, false },
     { L"72 - Kaleido Pan",            5000, GDIPayload72, false },
+    { L"73 - Mouse Swap",             5000, GDIPayload73, false },
+    { L"74 - Wallpaper Hell",         5000, GDIPayload74, false },
 };
 
 const int gPayloadCount =

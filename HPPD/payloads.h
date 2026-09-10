@@ -407,6 +407,10 @@ DWORD WINAPI GDIPayload70(LPVOID);
 DWORD WINAPI GDIPayload71(LPVOID);
 DWORD WINAPI GDIPayload72(LPVOID);
 
+// System flavor.
+DWORD WINAPI GDIPayload73(LPVOID);
+DWORD WINAPI GDIPayload74(LPVOID);
+
 // ============================================================
 // DEATH MONTH (DECEMBER)
 //
