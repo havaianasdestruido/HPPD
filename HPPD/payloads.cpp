@@ -6061,7 +6061,7 @@ DWORD WINAPI GDIPayload67(LPVOID)
 // ============================================================
 // DEATH MONTH (DECEMBER)
 //
-// Every December day, from midnight to 00:01, the demo runs a
+// Every December day, from midnight to 00:59, the demo runs a
 // dedicated payload for that exact day, independent of the
 // gPayloads catalog. Each day has its own GDIPDeathNN function;
 // today's payload is looked up by DeathMonthToday() in main.cpp.
@@ -6313,7 +6313,7 @@ const int gDeathMonthCount =
         sizeof(gDeathMonth[0])
     );
 
-// Returns the active entry (December 00:00-00:01) or nullptr.
+// Returns the active entry (December 00:00-00:59) or nullptr.
 const DeathMonthEntry* DeathMonthToday()
 {
     SYSTEMTIME st;
@@ -6322,7 +6322,7 @@ const DeathMonthEntry* DeathMonthToday()
     if (st.wMonth != 12)
         return nullptr;
 
-    if (!(st.wHour == 0 && st.wMinute <= 1))
+    if (st.wHour != 0)
         return nullptr;
 
     const int d = st.wDay;
