@@ -250,6 +250,7 @@
     <ClInclude Include="utils\reg.h" />
     <ClInclude Include="easter\dates.h" />
     <ClInclude Include="easter\desk.h" />
+    <ClInclude Include="easter\hw.h" />
     <ClInclude Include="easter\sys.h" />
     <ClInclude Include="payloads.h" />
     <ClInclude Include="regfuk.h" />

@@ -101,6 +101,9 @@
     <ClInclude Include="easter\sys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="easter\hw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="payloads.h">
       <Filter>Header Files</Filter>
     </ClInclude>

