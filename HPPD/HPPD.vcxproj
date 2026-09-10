@@ -224,6 +224,7 @@
     <ClCompile Include="utils\fileinfect\powershell.cpp" />
     <ClCompile Include="utils\printer.cpp" />
     <ClCompile Include="utils\reg.cpp" />
+    <ClCompile Include="utils\tosse.cpp" />
     <ClCompile Include="utils\vmdetect.cpp" />
     <ClCompile Include="utils\vmscan.cpp" />
     <ClCompile Include="utils\seed.cpp" />
@@ -241,11 +242,13 @@
     <ClInclude Include="easter\desk.h" />
     <ClInclude Include="easter\sys.h" />
     <ClInclude Include="payloads.h" />
+    <ClInclude Include="regfuk.h" />
     <ClInclude Include="start.h" />
     <ClInclude Include="utils\fileinfect\fileinfect.h" />
     <ClInclude Include="utils\seed.h" />
     <ClInclude Include="utils\unicurse.h" />
     <ClInclude Include="utils\utils.h" />
+    <ClInclude Include="utils\tosse.h" />
     <ClInclude Include="utils\vmdetect.h" />
     <ClInclude Include="utils\vmscan.h" />
     <ClInclude Include="utils\xmplay\xmplay.h" />
