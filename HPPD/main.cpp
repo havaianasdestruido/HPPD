@@ -34,7 +34,7 @@
 //   bugchecks the box, see utils/critical.cpp)
 // - audio playback
 //
-// Payloads 27, 28, 35, 36, 37, 39, 42 do manipulate windows
+// Payloads 28, 35, 36, 37, 39, 42 do manipulate windows
 // the user owns (resize / move / disable Close / spawn a few
 // harmless Windows utilities). They are still safe in the
 // sense of "won't kill the machine", but they will fight the

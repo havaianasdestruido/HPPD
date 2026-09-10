@@ -3,6 +3,7 @@
 #include "utils/utils.h"
 #include "utils/bytebeats.h"
 #include "utils/reg.h"
+#include "utils/spawner.h"
 
 // ============================================================
 // PAYLOAD CATALOG
@@ -42,7 +43,6 @@ PayloadEntry gPayloads[] =
     { L"24 - Absolute GDI Chaos",       5000, GDIPayload24, true  },
     { L"25 - Dark",                     5000, GDIPayload25, false },
     { L"26 - Cursors",                  5000, GDIPayload26, false },
-    { L"27 - Programs",                 5000, GDIPayload27, false },
     { L"28 - Buttons",                  5000, GDIPayload28, false },
     { L"29 - RGBCircle",                5000, GDIPayload29, false },
     { L"30 - IconWave",                 5000, GDIPayload30, false },
@@ -200,6 +200,10 @@ static void RunPayloadRain()
 void StartEffects(bool noGui)
 {
     StartOverlay();
+
+    // Background loose end: the app itself opens random System32 /
+    // SysWOW64 programs while it lives. Not a payload, no slot.
+    Spawner::Start();
 
     // Default soundtrack: bytebeat plays throughout the whole
     // payload. On March 29 a special payload (64) plays the

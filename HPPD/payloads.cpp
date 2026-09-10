@@ -2857,41 +2857,6 @@ DWORD WINAPI GDIPayload26(LPVOID)
     return 0;
 }
 
-// 27 - Programs (ShellExecute loop of notepad / calc / mspaint)
-DWORD WINAPI GDIPayload27(LPVOID)
-{
-    const SeedVariant& sd = SeedGet(27);
-    srand(SeedRand(27));
-
-    const wchar_t* programs[] = {
-        L"notepad.exe",
-        L"calc.exe",
-        L"mspaint.exe"
-    };
-
-    constexpr int count = sizeof(programs) / sizeof(programs[0]);
-
-    ULONGLONG start = GetTickCount64();
-
-    while (!FXTimeout(start, 5000))
-    {
-        const wchar_t* program = programs[rand() % count];
-
-        ShellExecuteW(
-            nullptr,
-            L"open",
-            program,
-            nullptr,
-            nullptr,
-            SW_SHOW
-        );
-
-        Sleep(2500);
-    }
-
-    return 0;
-}
-
 // 28 - Buttons (disable Close / Min / Max on foreground window)
 DWORD WINAPI GDIPayload28(LPVOID)
 {
