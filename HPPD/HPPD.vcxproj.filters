@@ -134,6 +134,9 @@
     <ClInclude Include="utils\critical.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="utils\printer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="utils\reg.h">
       <Filter>Header Files</Filter>
     </ClInclude>

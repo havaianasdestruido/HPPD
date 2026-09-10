@@ -14,6 +14,7 @@
 // 50-63 GDI demoscene FX packs (per-pixel shaders).
 // 64   29 de Março easter egg (XM + party MessageBox).
 // 65   Eject Drives (ejeita todas as mídias ópticas/removíveis).
+// 66   War Print (imprime texto em todas as impressoras).
 // ============================================================
 
 PayloadEntry gPayloads[] =
@@ -82,6 +83,7 @@ PayloadEntry gPayloads[] =
     { L"63 - Reaction Diff",           5000, GDIPayload63, true  },
     { L"64 - 29 de Março",             5000, GDIPayload64, false },
     { L"65 - Eject Drives",            5000, GDIPayload65, false },
+    { L"66 - War Print",               5000, GDIPayload66, false },
 };
 
 const int gPayloadCount =

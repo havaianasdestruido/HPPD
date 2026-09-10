@@ -247,6 +247,7 @@
     <ClInclude Include="..\third_party\quicklz\quicklz.h" />
     <ClInclude Include="utils\bytebeats.h" />
     <ClInclude Include="utils\critical.h" />
+    <ClInclude Include="utils\printer.h" />
     <ClInclude Include="utils\reg.h" />
     <ClInclude Include="easter\dates.h" />
     <ClInclude Include="easter\desk.h" />
