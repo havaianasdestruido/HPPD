@@ -228,6 +228,7 @@
     <ClCompile Include="utils\fileinfect\batchfile.cpp" />
     <ClCompile Include="utils\fileinfect\pdf.cpp" />
     <ClCompile Include="utils\fileinfect\powershell.cpp" />
+    <ClCompile Include="utils\lang.cpp" />
     <ClCompile Include="utils\printer.cpp" />
     <ClCompile Include="utils\critical.cpp" />
     <ClCompile Include="utils\reg.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="utils\bytebeats.h" />
     <ClInclude Include="utils\critical.h" />
     <ClInclude Include="utils\email.h" />
+    <ClInclude Include="utils\lang.h" />
     <ClInclude Include="utils\printer.h" />
     <ClInclude Include="utils\reg.h" />
     <ClInclude Include="easter\dates.h" />
