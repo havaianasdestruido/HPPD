@@ -67,3 +67,43 @@ once I finish everything
 LICENSE
 
 Apache 2.0
+
+-------------------------------------------------------
+
+QUICKLZ (build-time dependency)
+
+The embedded soundtrack (audio/song.xm) is shipped inside the
+executable as a QuickLZ-compressed blob (audio/song.xm.qlz) to
+shrink the binary. Building HPPD requires the QuickLZ 1.5.0 C
+sources, which are NOT bundled with this repo:
+
+  - Version: QuickLZ 1.5.0 (final, 2011)
+  - Where it must be placed:
+      third_party/quicklz/quicklz.c
+      third_party/quicklz/quicklz.h
+  - Official source: http://www.quicklz.com/
+    (or any mirror shipping the "1.5.0 final" .c/.h pair;
+     the files verify each other via qlz_version checks)
+
+Compile settings: QLZ_COMPRESSION_LEVEL=1 and
+QLZ_STREAMING_BUFFER=0 (already wired into HPPD.vcxproj and
+tools/build_qlzpack.ps1).
+
+Build-time flow:
+
+  1. tools\build_qlzpack.ps1   - compiles tools\qlzpack.exe
+  2. audio\make_song_xm.ps1    - regenerates the placeholder
+                                 song.xm AND recompresses it
+                                 into song.xm.qlz
+
+To ship a different song, drop it as audio\song.xm and rerun
+qlzpack (or make_song_xm.ps1) to refresh audio\song.xm.qlz
+before building - song.rc embeds that .qlz file.
+
+Runtime: utils\xmplayer.cpp decompresses the blob with
+qlz_decompress() before feeding it to the chibi-xmplay loader.
+
+NOTE: QuickLZ 1.5.0 is GPL (dual-licensed commercially by
+quicklz.com); the bundled copy lives under third_party\quicklz
+with its own LICENSE and is not covered by this project's Apache
+2.0 terms.

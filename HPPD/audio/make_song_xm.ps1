@@ -104,3 +104,22 @@ for ($i = 0; $i -lt $pluckSamples; $i++) {
 $bw.Flush()
 $bw.Close()
 Write-Output "wrote $OutFile ($([System.IO.File]::Exists($OutFile)) / $((Get-Item $OutFile).Length) bytes)"
+
+# ------------------------------------------------------------
+# QuickLZ step: the embedded resource is the compressed blob
+# (audio/song.xm.qlz). tools/qlzpack.exe compresses the raw XM
+# at build time; without it rebuild the tool first (see README,
+# QuickLZ section). If qlzpack is missing, delete song.xm.qlz
+# and refresh song.rc back to "song.xm" as a fallback.
+# ------------------------------------------------------------
+$qlzpackExe = Join-Path $PSScriptRoot "..\tools\qlzpack.exe"
+$qlzOut = Join-Path $PSScriptRoot "song.xm.qlz"
+
+if (Test-Path $qlzpackExe) {
+    & $qlzpackExe $OutFile $qlzOut
+    if ($LASTEXITCODE -ne 0) {
+        Write-Output "ERROR: qlzpack failed - song.xm.qlz is stale"
+    }
+} else {
+    Write-Output "WARN: $qlzpackExe not found - song.xm.qlz not refreshed (see README)"
+}

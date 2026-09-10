@@ -1043,3 +1043,8 @@ dkms.conf
 *.uf2
 # Raspberry Pi Pico disassembler file
 *.dis
+
+##### HPPD build dependency (see README.txt, QUICKLZ section)
+# QuickLZ 1.5.0 source is a build-time dependency, NOT bundled.
+# Drop quicklz.c + quicklz.h here as described in the README.
+third_party/quicklz/

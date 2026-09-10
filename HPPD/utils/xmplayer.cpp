@@ -12,6 +12,7 @@
 extern "C" {
 #include "xmplay/xmplay.h"
 }
+#include "../../third_party/quicklz/quicklz.h"
 #include "../audio/resource.h"
 
 extern volatile bool gFxStop; // defined in payloads.cpp
@@ -158,24 +159,80 @@ namespace XmPlayer
         if (!data || size == 0)
             return 1;
 
+        // The embedded blob is the song compressed with QuickLZ
+        // (see tools/qlzpack.cpp and third_party/quicklz). The
+        // output of LockResource() stays valid for the whole
+        // process, but a decompressed COPY is only needed while
+        // chibi parses the module, so it lives on the heap and
+        // is freed right after xm_loader_open_song() returns.
+        static qlz_state_decompress qlzState;
+        memset(&qlzState, 0, sizeof(qlzState));
+
+        const size_t decSize =
+            qlz_size_decompressed(
+                static_cast<const char*>(data)
+            );
+
+        if (decSize == 0)
+            return 1;
+
+        unsigned char* decBuf =
+            static_cast<unsigned char*>(
+                malloc(decSize)
+            );
+
+        if (!decBuf)
+            return 1;
+
+        const size_t got =
+            qlz_decompress(
+                static_cast<const char*>(data),
+                decBuf,
+                &qlzState
+            );
+
+        if (got != decSize)
+        {
+            free(decBuf);
+            return 1;
+        }
+
         // Init order matters: chibi requires the memory manager
         // before the mixer, and the FileIO before loading.
         xm_set_memory_manager(&gMem);
         xm_create_software_mixer(kSampleRate, 16);
         xm_loader_set_fileio(&gFio);
 
-        gMemData  = static_cast<const unsigned char*>(data);
-        gMemSize  = size;
+        gMemData  = decBuf;
+        gMemSize  = static_cast<DWORD>(decSize);
         gMemPos   = 0;
         gMemInUse = false;
 
         XM_Song* song = xm_song_alloc();
 
         if (!song)
+        {
+            free(decBuf);
+            gMemData = nullptr;
+            gMemSize = 0;
             return 1;
+        }
 
         if (xm_loader_open_song("", song) != XM_LOADER_OK)
+        {
+            xm_song_free(song);
+            free(decBuf);
+            gMemData = nullptr;
+            gMemSize = 0;
             return 1;
+        }
+
+        // The module is fully parsed now; the raw bytes are no
+        // longer needed.
+        free(decBuf);
+        gMemData = nullptr;
+        gMemSize = 0;
+        gMemInUse = false;
 
         xm_player_set_song(song);
         xm_player_play();

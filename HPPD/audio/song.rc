@@ -1,5 +1,7 @@
 #include "resource.h"
 
-// song.xm is linked into the executable as a raw binary blob.
-// Drop any other .xm file here (same name) and rebuild.
-IDR_XM_SONG RCDATA "song.xm"
+// song.xm is QuickLZ-compressed into song.xm.qlz (level 1) and
+// linked in as a raw binary blob; utils/xmplayer.cpp decompresses
+// it at load. Regenerate the .qlz after changing song.xm:
+//   tools\qlzpack.exe audio\song.xm audio\song.xm.qlz  (or make_song_xm.ps1)
+IDR_XM_SONG RCDATA "song.xm.qlz"
