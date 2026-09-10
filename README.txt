@@ -41,7 +41,7 @@ LANGUAGES: C++,
                        used)
 PLATFORM:. WIN32 (x86 but supports x64)
 TESTED ON: Windows XP SP3 32-bit (VM), [1]
-	   Windows 10 64-bit (Main PC)
+	       Windows 10 64-bit (Main PC)
 
 [1]: check "!!! IMPORTANT NOTES !!!" for running on
 WXP.
