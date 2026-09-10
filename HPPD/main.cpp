@@ -821,6 +821,69 @@ static bool HasCommandFlag(const wchar_t* flag)
     return false;
 }
 
+// True from Dec 31 23:00 through Jan 1 01:00 (New Year's Eve).
+static bool NewYearWindow()
+{
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+
+    if (st.wMonth == 12 && st.wDay == 31 && st.wHour >= 23)
+        return true;
+
+    if (st.wMonth == 1 && st.wDay == 1 && st.wHour <= 1)
+        return true;
+
+    return false;
+}
+
+// "Payload rain": launches every payload in the catalog at once.
+// Full-screen renderers serialize through gHeavySlot so they
+// don't fight each other (that's what keeps it laggy-proof);
+// light modifiers overlap freely. Launch bursts are staggered by
+// 30ms so the thread explosion doesn't stutter at startup.
+static void RunPayloadRain()
+{
+    HANDLE threads[65];
+
+    gHeavySlot = CreateMutexW(nullptr, FALSE, nullptr);
+
+    for (int i = 0; i < gPayloadCount; ++i)
+    {
+        OverlaySetPayload(
+            gPayloads[i].name,
+            gPayloads[i].ms
+        );
+
+        if (gPayloads[i].heavy)
+        {
+            threads[i] =
+                CreateThread(
+                    nullptr,
+                    0,
+                    SlotRunner,
+                    new SlotArg{
+                        gPayloads[i].fn
+                    },
+                    0,
+                    nullptr
+                );
+        }
+        else
+        {
+            threads[i] =
+                StartEffect(gPayloads[i].fn);
+        }
+
+        Sleep(30);
+    }
+
+    for (int i = 0; i < gPayloadCount; ++i)
+        WaitEffect(threads[i]);
+
+    CloseHandle(gHeavySlot);
+    gHeavySlot = nullptr;
+}
+
 int main()
 {
     const bool noGui = HasCommandFlag(L"nogui");
@@ -878,13 +941,36 @@ int main()
         sound = StartEffect(Bytebeats::BytebeatPlay);
 
     // -------------------------------------------------------
-    // DEATH MONTH (December 00:00-00:01): only today's payload
-    // runs, replacing the full demo for that one minute. Day
-    // 12/NN -> GDIPDeathNN is mapped in gDeathMonth[].
+    // Event windows: New Year takes precedence over Death Month.
     // -------------------------------------------------------
     const DeathMonthEntry* dm = DeathMonthToday();
 
-    if (dm)
+    // -------------------------------------------------------
+    // NEW YEAR (Dec 31 23:00 -> Jan 1 01:00): payload rain -
+    // literally every payload at once, then the "lol" popup.
+    // -------------------------------------------------------
+    if (NewYearWindow())
+    {
+        printf(">> NEW YEAR\n");
+
+        OverlaySetPayload(
+            L"NOVO ANO",
+            2 * 3600 * 1000ULL
+        );
+
+        RunPayloadRain();
+
+        if (!noGui)
+        {
+            MessageBoxW(
+                NULL,
+                L"no one gonna believe in you",
+                L"lol",
+                MB_OK
+            );
+        }
+    }
+    else if (dm)
     {
         if (const char* banner = DeathMonthName())
             printf(">> %s\n", banner);
@@ -905,43 +991,7 @@ int main()
     // overlap, producing one combined chaos.
     // -------------------------------------------------------
 
-    HANDLE threads[65];
-
-    gHeavySlot = CreateMutexW(nullptr, FALSE, nullptr);
-
-    for (int i = 0; i < gPayloadCount; ++i)
-    {
-        OverlaySetPayload(
-            gPayloads[i].name,
-            gPayloads[i].ms
-        );
-
-        if (gPayloads[i].heavy)
-        {
-            threads[i] =
-                CreateThread(
-                    nullptr,
-                    0,
-                    SlotRunner,
-                    new SlotArg{
-                        gPayloads[i].fn
-                    },
-                    0,
-                    nullptr
-                );
-        }
-        else
-        {
-            threads[i] =
-                StartEffect(gPayloads[i].fn);
-        }
-    }
-
-    for (int i = 0; i < gPayloadCount; ++i)
-        WaitEffect(threads[i]);
-
-    CloseHandle(gHeavySlot);
-    gHeavySlot = nullptr;
+    RunPayloadRain();
 #else
     // -------------------------------------------------------
     // DEFAULT: one effect at a time, in order.
