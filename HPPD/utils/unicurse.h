@@ -68,7 +68,7 @@ static wchar_t UnicodeRandomChar()
         { 0x0400, 0x04FF },
 
         // Hebrew
-        { 0x0590, 0x05FF },
+        //{ 0x0590, 0x05FF },
 
         // Arabic
         { 0x0600, 0x06FF },
