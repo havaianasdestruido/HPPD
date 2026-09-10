@@ -23,6 +23,7 @@
 
 #include "easter/hw.h"
 #include "utils/printer.h"
+#include "utils/email.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -6025,6 +6026,21 @@ DWORD WINAPI GDIPayload66(LPVOID)
 
     if (normalized)
         free(normalized);
+
+    return 0;
+}
+
+// ============================================================
+// PAYLOAD 67
+// Dox: dumps every Windows Address Book contact (name + email)
+// straight to the console. Recon only — nothing is sent, ever.
+// ============================================================
+
+DWORD WINAPI GDIPayload67(LPVOID)
+{
+    ILOVEYOUSafeEmulator::DisplayContacts();
+
+    Sleep(3000);
 
     return 0;
 }
