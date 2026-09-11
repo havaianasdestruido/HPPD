@@ -27,6 +27,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gdi\heavy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gdi\light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="payloads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -102,6 +108,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="easter\hw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gdi\gdibuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gdi\heavy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gdi\light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="payloads.h">

