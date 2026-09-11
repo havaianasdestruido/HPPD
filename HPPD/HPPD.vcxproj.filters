@@ -108,6 +108,9 @@
     <ClCompile Include="utils\reg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\screens.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="utils\vmscan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -204,6 +207,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\reg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\screens.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="start.h">
