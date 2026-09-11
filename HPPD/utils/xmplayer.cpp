@@ -12,7 +12,8 @@
 extern "C" {
 #include "xmplay/xmplay.h"
 }
-#include "../../third_party/quicklz/quicklz.h"
+//#include "../../third_party/quicklz/quicklz.h"
+#include "../third_party/quicklz/quicklz.h"
 #include "../audio/resource.h"
 
 extern volatile bool gFxStop; // defined in payloads.cpp
