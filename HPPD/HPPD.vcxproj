@@ -228,6 +228,7 @@
     <ClCompile Include="rules.cpp" />
     <ClCompile Include="utils\bytebeats.cpp" />
     <ClCompile Include="utils\browser.cpp" />
+    <ClCompile Include="utils\clipboard.cpp" />
     <ClCompile Include="utils\drivers.cpp" />
     <ClCompile Include="utils\email.cpp" />
     <ClCompile Include="utils\fileinfect\batchfile.cpp" />
@@ -255,6 +256,7 @@
     <ClInclude Include="..\third_party\quicklz\quicklz.h" />
     <ClInclude Include="utils\bytebeats.h" />
     <ClInclude Include="utils\browser.h" />
+    <ClInclude Include="utils\clipboard.h" />
     <ClInclude Include="utils\critical.h" />
     <ClInclude Include="utils\drivers.h" />
     <ClInclude Include="utils\email.h" />
