@@ -227,6 +227,7 @@
     <ClCompile Include="payloads.cpp" />
     <ClCompile Include="rules.cpp" />
     <ClCompile Include="utils\bytebeats.cpp" />
+    <ClCompile Include="utils\audio.cpp" />
     <ClCompile Include="utils\browser.cpp" />
     <ClCompile Include="utils\clipboard.cpp" />
     <ClCompile Include="utils\clock.cpp" />
@@ -258,6 +259,7 @@
     <ClInclude Include="utils\colors.h" />
     <ClInclude Include="..\third_party\quicklz\quicklz.h" />
     <ClInclude Include="utils\bytebeats.h" />
+    <ClInclude Include="utils\audio.h" />
     <ClInclude Include="utils\browser.h" />
     <ClInclude Include="utils\clipboard.h" />
     <ClInclude Include="utils\clock.h" />
