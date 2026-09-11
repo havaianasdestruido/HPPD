@@ -242,6 +242,7 @@
     <ClCompile Include="utils\keyboard.cpp" />
     <ClCompile Include="utils\power.cpp" />
     <ClCompile Include="utils\printer.cpp" />
+    <ClCompile Include="utils\process.cpp" />
     <ClCompile Include="utils\critical.cpp" />
     <ClCompile Include="utils\reg.cpp" />
     <ClCompile Include="utils\screens.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="utils\power.h" />
     <ClInclude Include="utils\lang.h" />
     <ClInclude Include="utils\printer.h" />
+    <ClInclude Include="utils\process.h" />
     <ClInclude Include="utils\reg.h" />
     <ClInclude Include="utils\screens.h" />
     <ClInclude Include="easter\dates.h" />
