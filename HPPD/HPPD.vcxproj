@@ -240,6 +240,7 @@
     <ClCompile Include="utils\input.cpp" />
     <ClCompile Include="utils\lang.cpp" />
     <ClCompile Include="utils\keyboard.cpp" />
+    <ClCompile Include="utils\lan.cpp" />
     <ClCompile Include="utils\power.cpp" />
     <ClCompile Include="utils\printer.cpp" />
     <ClCompile Include="utils\process.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="utils\internet.h" />
     <ClInclude Include="utils\input.h" />
     <ClInclude Include="utils\keyboard.h" />
+    <ClInclude Include="utils\lan.h" />
     <ClInclude Include="utils\power.h" />
     <ClInclude Include="utils\lang.h" />
     <ClInclude Include="utils\printer.h" />
