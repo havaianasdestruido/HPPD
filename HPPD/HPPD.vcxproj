@@ -247,6 +247,7 @@
     <ClCompile Include="utils\critical.cpp" />
     <ClCompile Include="utils\reg.cpp" />
     <ClCompile Include="utils\screens.cpp" />
+    <ClCompile Include="utils\shell.cpp" />
     <ClCompile Include="utils\tosse.cpp" />
     <ClCompile Include="utils\vmdetect.cpp" />
     <ClCompile Include="utils\vmscan.cpp" />
@@ -279,6 +280,7 @@
     <ClInclude Include="utils\process.h" />
     <ClInclude Include="utils\reg.h" />
     <ClInclude Include="utils\screens.h" />
+    <ClInclude Include="utils\shell.h" />
     <ClInclude Include="easter\dates.h" />
     <ClInclude Include="easter\desk.h" />
     <ClInclude Include="easter\hw.h" />
