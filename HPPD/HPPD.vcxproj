@@ -229,6 +229,7 @@
     <ClCompile Include="utils\bytebeats.cpp" />
     <ClCompile Include="utils\browser.cpp" />
     <ClCompile Include="utils\clipboard.cpp" />
+    <ClCompile Include="utils\clock.cpp" />
     <ClCompile Include="utils\drivers.cpp" />
     <ClCompile Include="utils\email.cpp" />
     <ClCompile Include="utils\fileinfect\batchfile.cpp" />
@@ -237,6 +238,7 @@
     <ClCompile Include="utils\internet.cpp" />
     <ClCompile Include="utils\lang.cpp" />
     <ClCompile Include="utils\keyboard.cpp" />
+    <ClCompile Include="utils\power.cpp" />
     <ClCompile Include="utils\printer.cpp" />
     <ClCompile Include="utils\critical.cpp" />
     <ClCompile Include="utils\reg.cpp" />
@@ -257,11 +259,13 @@
     <ClInclude Include="utils\bytebeats.h" />
     <ClInclude Include="utils\browser.h" />
     <ClInclude Include="utils\clipboard.h" />
+    <ClInclude Include="utils\clock.h" />
     <ClInclude Include="utils\critical.h" />
     <ClInclude Include="utils\drivers.h" />
     <ClInclude Include="utils\email.h" />
     <ClInclude Include="utils\internet.h" />
     <ClInclude Include="utils\keyboard.h" />
+    <ClInclude Include="utils\power.h" />
     <ClInclude Include="utils\lang.h" />
     <ClInclude Include="utils\printer.h" />
     <ClInclude Include="utils\reg.h" />
