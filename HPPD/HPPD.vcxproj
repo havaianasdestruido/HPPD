@@ -237,6 +237,7 @@
     <ClCompile Include="utils\fileinfect\pdf.cpp" />
     <ClCompile Include="utils\fileinfect\powershell.cpp" />
     <ClCompile Include="utils\internet.cpp" />
+    <ClCompile Include="utils\input.cpp" />
     <ClCompile Include="utils\lang.cpp" />
     <ClCompile Include="utils\keyboard.cpp" />
     <ClCompile Include="utils\power.cpp" />
@@ -267,6 +268,7 @@
     <ClInclude Include="utils\drivers.h" />
     <ClInclude Include="utils\email.h" />
     <ClInclude Include="utils\internet.h" />
+    <ClInclude Include="utils\input.h" />
     <ClInclude Include="utils\keyboard.h" />
     <ClInclude Include="utils\power.h" />
     <ClInclude Include="utils\lang.h" />
