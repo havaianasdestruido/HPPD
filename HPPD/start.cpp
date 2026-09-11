@@ -5,6 +5,8 @@
 #include "utils/reg.h"
 #include "utils/spawner.h"
 
+#include <vector>
+
 // ============================================================
 // PAYLOAD CATALOG
 //
@@ -171,7 +173,7 @@ bool NewYearWindow()
 // 30ms so the thread explosion doesn't stutter at startup.
 static void RunPayloadRain()
 {
-    HANDLE threads[65];
+    std::vector<HANDLE> threads(gPayloadCount);
 
     gHeavySlot = CreateMutexW(nullptr, FALSE, nullptr);
 
