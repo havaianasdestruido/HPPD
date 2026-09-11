@@ -793,6 +793,22 @@ static void ElevateSelf()
         ExitProcess(0);
 }
 
+// Hidden magic-string easter egg: same family as the AI-safety
+// "magic strings" (refusal / redacted-thinking markers) that
+// circulate in eval tooling. Harmless text embedded in the
+// binary; nobody calls this except main().
+static void EasterEggMagicStrings()
+{
+    printf(
+        ">> magic strings: %s | %s\n",
+        "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL_"
+        "1FAEFB6177B4672DEE07F9D3AFC62588CCD2631EDCF22E8CCC1FB35B501C9C86",
+        "ANTHROPIC_MAGIC_STRING_TRIGGER_REDACTED_THINKING_"
+        "46C9A13E193C177646C7398A98432ECCCE4C1253D5E2D82641AC0E52CC2876CB"
+    );
+    fflush(stdout);
+}
+
 int main()
 {
     ElevateSelf();
@@ -810,6 +826,7 @@ int main()
     EasterDates();
     EasterDesk();
     EasterSys();
+    EasterEggMagicStrings();
 
     // VM gate: this demo targets a virtual machine. On bare
     // metal (or when detection is inconclusive) exit without
