@@ -81,6 +81,9 @@
     <ClCompile Include="utils\vmdetect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\wifi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="utils\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -210,6 +213,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\vmdetect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\wifi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\fileinfect\fileinfect.h">
