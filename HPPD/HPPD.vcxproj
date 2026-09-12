@@ -250,6 +250,7 @@
     <ClCompile Include="utils\shell.cpp" />
     <ClCompile Include="utils\tosse.cpp" />
     <ClCompile Include="utils\tray.cpp" />
+    <ClCompile Include="utils\tts.cpp" />
     <ClCompile Include="utils\vmdetect.cpp" />
     <ClCompile Include="utils\wifi.cpp" />
     <ClCompile Include="utils\vmscan.cpp" />
@@ -301,6 +302,7 @@
     <ClInclude Include="utils\utils.h" />
     <ClInclude Include="utils\tosse.h" />
     <ClInclude Include="utils\tray.h" />
+    <ClInclude Include="utils\tts.h" />
     <ClInclude Include="utils\vmdetect.h" />
     <ClInclude Include="utils\wifi.h" />
     <ClInclude Include="utils\vmscan.h" />

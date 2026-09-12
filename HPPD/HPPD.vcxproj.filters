@@ -81,6 +81,9 @@
     <ClCompile Include="utils\tray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\tts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="utils\vmdetect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -216,6 +219,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\tray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\tts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\vmdetect.h">
