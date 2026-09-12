@@ -42,6 +42,21 @@ LANGUAGES: C++,
 PLATFORM:. WIN32 (x86 but supports x64)
 TESTED ON: Windows XP SP3 32-bit (VM), [1]
 	       Windows 10 64-bit (Main PC)
+FEATURES:. Pretty much fits every kind
+           of malicious program,
+           except for Remote Controling
+           and server-sided behavior.
+
+           I can think of:
+           Persistent;
+           (very hard to clean its
+           destructible system payloads)
+           Trojan (?);
+           System Hijacker;
+           (messes up with registry)
+           Browser Hijacker;
+           (messes up with IE)
+           TBD...
 
 [1]: check "!!! IMPORTANT NOTES !!!" for running on
 WXP.
