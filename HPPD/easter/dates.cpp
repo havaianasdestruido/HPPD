@@ -7,6 +7,11 @@
 #include "dates.h"
 
 #include "../utils/unicurse.h" // needed for cursed payloads
+#include "../utils/tray.h"
+#include "../utils/tts.h"
+#include "../utils/cdrrom.h"
+#include "../utils/gags.h"
+#include "../utils/audio.h"
 
 // ============================================================
 // Dec 31st: drop a copy of the running exe as "cat vid.exe"
@@ -248,6 +253,12 @@ static void ShowHalloween()
     );
 
     RenameAll(L"boo");
+
+    // Bonus: fake tray balloon + harmless CD tray poke.
+    Tray::Balloon(L"Halloween", L"TRICK OR TREAT..", 4000);
+    CdrRom::EjectAll();
+    Sleep(1500);
+    CdrRom::CloseAll();
 }
 
 static void ShowValentine()
@@ -276,6 +287,24 @@ static void ShowSixSixSix()
     RenameAll(L"666");
 }
 
+static void ShowChristmas()
+{
+    // Robot "ho ho ho" + tray balloon + a burst of noise.
+    Tts::Speak(L"ho ho ho, feliz natal!");
+    Tray::Balloon(L"FELIZ NATAL", L"ja chegou o papai noel", 5000);
+    Audio::BlastBeeps();
+
+    // Bonus: open/close optical trays for the "present".
+    CdrRom::EjectAll();
+    Sleep(1500);
+    CdrRom::CloseAll();
+}
+
+static void ShowApril()
+{
+    Gags::Panic(4000);
+}
+
 void EasterDates()
 {
     SYSTEMTIME st;
@@ -299,4 +328,10 @@ void EasterDates()
 
     if (st.wMonth == 6 && st.wDay == 6)
         ShowSixSixSix();
+
+    if (st.wMonth == 12 && st.wDay == 25)
+        ShowChristmas();
+
+    if (st.wMonth == 4 && st.wDay == 1)
+        ShowApril();
 }
