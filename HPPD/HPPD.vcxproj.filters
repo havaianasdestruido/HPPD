@@ -90,6 +90,9 @@
     <ClCompile Include="utils\vmdetect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\wallpaper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="utils\wifi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -240,6 +243,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\vmdetect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\wallpaper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\wifi.h">
