@@ -126,6 +126,9 @@
     <ClCompile Include="utils\critical.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\cursor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="utils\reg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -240,6 +243,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\critical.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\cursor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\email.h">

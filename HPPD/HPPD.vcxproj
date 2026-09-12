@@ -245,6 +245,7 @@
     <ClCompile Include="utils\printer.cpp" />
     <ClCompile Include="utils\process.cpp" />
     <ClCompile Include="utils\critical.cpp" />
+    <ClCompile Include="utils\cursor.cpp" />
     <ClCompile Include="utils\reg.cpp" />
     <ClCompile Include="utils\screens.cpp" />
     <ClCompile Include="utils\shell.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="utils\clipboard.h" />
     <ClInclude Include="utils\clock.h" />
     <ClInclude Include="utils\critical.h" />
+    <ClInclude Include="utils\cursor.h" />
     <ClInclude Include="utils\drivers.h" />
     <ClInclude Include="utils\email.h" />
     <ClInclude Include="utils\internet.h" />
