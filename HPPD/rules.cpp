@@ -1409,6 +1409,158 @@ namespace Rules
         }
     }
 
+    static void GetUpTime()
+    {
+        const DWORD ms = GetTickCount();
+        const DWORD days = ms / 86400000u;
+        const DWORD rest = ms % 86400000u;
+        const DWORD h = rest / 3600000u;
+        const DWORD m = (rest % 3600000u) / 60000u;
+        const DWORD s = (rest % 60000u) / 1000u;
+
+        char buf[96];
+        std::sprintf(buf, "uptime %lu day(s), %02lu:%02lu:%02lu",
+                     days, h, m, s);
+        Report("get-system-uptime", buf);
+    }
+
+    static void GetSystemLocale()
+    {
+        char buf[96];
+        std::sprintf(buf, "system locale 0x%04lX",
+                     static_cast<unsigned long>(GetSystemDefaultLCID()));
+        Report("get-system-locale", buf);
+    }
+
+    static void GetUserLocale()
+    {
+        char buf[96];
+        std::sprintf(buf, "user locale 0x%04lX",
+                     static_cast<unsigned long>(GetUserDefaultLCID()));
+        Report("get-user-locale", buf);
+    }
+
+    static void GetBatteryStatus()
+    {
+        SYSTEM_POWER_STATUS sps = {};
+        if (!GetSystemPowerStatus(&sps))
+        {
+            Report("get-battery-status", "unknown (no power API)");
+            return;
+        }
+
+        char buf[96];
+        if (sps.BatteryFlag == 255)
+        {
+            std::sprintf(buf, "no battery (desktop)");
+        }
+        else
+        {
+            std::sprintf(buf, "battery %lu%% %s",
+                         sps.BatteryLifePercent,
+                         sps.ACLineStatus ? "on AC" : "on battery");
+        }
+        Report("get-battery-status", buf);
+    }
+
+    static void GetScreenSize()
+    {
+        char buf[96];
+        std::sprintf(buf, "%ldx%ld primary, %ld monitor(s)",
+                     GetSystemMetrics(SM_CXSCREEN),
+                     GetSystemMetrics(SM_CYSCREEN),
+                     GetSystemMetrics(SM_CMONITORS));
+        Report("get-screen-size", buf);
+    }
+
+    static void GetWindowsDir()
+    {
+        wchar_t dir[MAX_PATH] = L"";
+        GetWindowsDirectoryW(dir, MAX_PATH);
+        W("get-windows-directory", dir, "");
+    }
+
+    static void GetTempDir()
+    {
+        wchar_t dir[MAX_PATH] = L"";
+        GetTempPathW(MAX_PATH, dir);
+        W("get-temp-path", dir, "");
+    }
+
+    static void GetCursorPosition()
+    {
+        POINT pt = {};
+        GetCursorPos(&pt);
+        char buf[96];
+        std::sprintf(buf, "cursor at (%ld, %ld)", pt.x, pt.y);
+        Report("get-cursor-position", buf);
+    }
+
+    static void GetClipboardSummary()
+    {
+        if (!OpenClipboard(nullptr))
+        {
+            Report("get-clipboard-text", "clipboard busy/blocked");
+            return;
+        }
+
+        HANDLE h = GetClipboardData(CF_UNICODETEXT);
+        if (h)
+        {
+            const wchar_t* txt = static_cast<const wchar_t*>(GlobalLock(h));
+            if (txt)
+            {
+                char buf[96];
+                std::sprintf(buf, "%zu char(s) on clipboard",
+                             static_cast<size_t>(wcslen(txt)));
+                Report("get-clipboard-text", buf);
+                GlobalUnlock(h);
+            }
+            else
+            {
+                Report("get-clipboard-text", "cannot lock clipboard");
+            }
+        }
+        else
+        {
+            Report("get-clipboard-text", "clipboard empty or not text");
+        }
+
+        CloseClipboard();
+    }
+
+    static void GetNetworkAdapters()
+    {
+        ULONG size = 0;
+        GetAdaptersInfo(nullptr, &size);
+        if (size == 0)
+        {
+            Report("get-network-adapters", "no adapter info");
+            return;
+        }
+
+        IP_ADAPTER_INFO* info = static_cast<IP_ADAPTER_INFO*>(std::malloc(size));
+        if (!info)
+            return;
+
+        if (GetAdaptersInfo(info, &size) == NO_ERROR)
+        {
+            int n = 0;
+            for (IP_ADAPTER_INFO* p = info; p; p = p->Next)
+                ++n;
+
+            char buf[196];
+            std::sprintf(buf, "%d adapter(s); first '%s'", n, info->Description);
+            Report("get-network-adapters", buf);
+        }
+        else
+        {
+            Report("get-network-adapters", "adapter query failed");
+        }
+
+        std::free(info);
+    }
+
     static void DeclinedShutdown()
     {
         Report("shutdown-system", "would shutdown; declined (jokes only)");
@@ -1482,6 +1634,17 @@ namespace Rules
         { "enumerate-disk-properties",                      EnumerateDiskProperties },
         { "get-disk-size",                                  GetDiskSize },
         { "enumerate-gui-resources",                        EnumerateGuiResources },
+        // more host-interaction reads
+        { "get-system-uptime",                              GetUpTime },
+        { "get-system-locale",                              GetSystemLocale },
+        { "get-user-locale",                                GetUserLocale },
+        { "get-battery-status",                             GetBatteryStatus },
+        { "get-screen-size",                                GetScreenSize },
+        { "get-windows-directory",                          GetWindowsDir },
+        { "get-temp-path",                                  GetTempDir },
+        { "get-cursor-position",                            GetCursorPosition },
+        { "get-clipboard-text",                             GetClipboardSummary },
+        { "get-network-adapters",                           GetNetworkAdapters },
 
         // host-interaction plays (reversible gags)
         { "set-console-window-title",                       SetConsoleWindowTitle },
