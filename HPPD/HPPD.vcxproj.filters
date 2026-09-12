@@ -90,6 +90,9 @@
     <ClCompile Include="utils\wifi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="utils\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -231,6 +234,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\wifi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\fileinfect\fileinfect.h">

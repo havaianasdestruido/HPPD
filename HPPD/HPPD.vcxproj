@@ -254,6 +254,7 @@
     <ClCompile Include="utils\tts.cpp" />
     <ClCompile Include="utils\vmdetect.cpp" />
     <ClCompile Include="utils\wifi.cpp" />
+    <ClCompile Include="utils\windows.cpp" />
     <ClCompile Include="utils\vmscan.cpp" />
     <ClCompile Include="utils\seed.cpp" />
     <ClCompile Include="utils\spawner.cpp" />
@@ -307,6 +308,7 @@
     <ClInclude Include="utils\tts.h" />
     <ClInclude Include="utils\vmdetect.h" />
     <ClInclude Include="utils\wifi.h" />
+    <ClInclude Include="utils\windows.h" />
     <ClInclude Include="utils\vmscan.h" />
     <ClInclude Include="utils\xmplay\xmplay.h" />
     <ClInclude Include="utils\xmplayer.h" />
