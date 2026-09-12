@@ -133,8 +133,15 @@ static void Cracklol01()
     // we don't carry a manifest, so it returns the real version.
     OSVERSIONINFOEXW osvi{};
     osvi.dwOSVersionInfoSize = sizeof(osvi);
+#if defined(_MSC_VER) && _MSC_VER >= 1930
+#pragma warning(push)
+#pragma warning(disable : 4996) // GetVersionExW is deprecated in the modern SDK
+#endif
     if (!GetVersionExW(reinterpret_cast<OSVERSIONINFOW*>(&osvi)))
         ZeroMemory(&osvi, sizeof(osvi));
+#if defined(_MSC_VER) && _MSC_VER >= 1930
+#pragma warning(pop)
+#endif
 
     SYSTEMTIME now;
     GetLocalTime(&now);

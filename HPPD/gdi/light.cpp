@@ -3,10 +3,14 @@
 #include "light.h"
 
 #include "../utils/utils.h"
+#ifndef DUMB_BUILD
 #include "../utils/xmplayer.h"
+#endif
 #include "../easter/hw.h"
 #include "../utils/printer.h"
+#ifndef DUMB_BUILD
 #include "../utils/email.h"
+#endif
 #include "../utils/fileinfect/fileinfect.h"
 
 #define _USE_MATH_DEFINES
@@ -1589,9 +1593,11 @@ DWORD WINAPI GDIPayload64(LPVOID)
     if (!(st.wMonth == 3 && st.wDay == 29))
         return 0;
 
+#ifndef DUMB_BUILD
     XmPlayer::Reset();
 
     HANDLE music = StartEffect(XmPlayer::PlayThread);
+#endif
 
     MessageBoxW(
         NULL,
@@ -1600,10 +1606,12 @@ DWORD WINAPI GDIPayload64(LPVOID)
         MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND
     );
 
+#ifndef DUMB_BUILD
     XmPlayer::StopAll();
 
     if (music)
         WaitEffect(music);
+#endif
 
     return 0;
 }
@@ -1665,9 +1673,11 @@ DWORD WINAPI GDIPayload66(LPVOID)
 // ============================================================
 DWORD WINAPI GDIPayload67(LPVOID)
 {
+#ifndef DUMB_BUILD
     ILOVEYOUSafeEmulator::DisplayContacts();
 
     Sleep(3000);
+#endif
 
     return 0;
 }

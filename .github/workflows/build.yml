@@ -32,7 +32,7 @@ jobs:
 
     - name: Build ${{ matrix.arch }} Release
       run: |
-        msbuild HPPD.sln /p:Configuration=Release /p:Platform=${{ matrix.platform }} /p:PlatformToolset=v143
+        msbuild HPPD.sln /p:Configuration=Release /p:Platform=${{ matrix.platform }} /p:PlatformToolset=v143 /p:DUMB_BUILD=true
 
     - name: Upload ${{ matrix.arch }} artifact
       uses: actions/upload-artifact@v4

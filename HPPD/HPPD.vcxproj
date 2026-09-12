@@ -213,6 +213,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(DUMB_BUILD)'=='true'">
+    <ClCompile>
+      <PreprocessorDefinitions>DUMB_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="easter\dates.cpp" />
     <ClCompile Include="easter\desk.cpp" />
@@ -233,7 +238,7 @@
     <ClCompile Include="utils\clipboard.cpp" />
     <ClCompile Include="utils\clock.cpp" />
     <ClCompile Include="utils\drivers.cpp" />
-    <ClCompile Include="utils\email.cpp" />
+    <ClCompile Include="utils\email.cpp" Condition="'$(DUMB_BUILD)'!='true'" />
     <ClCompile Include="utils\fileinfect\batchfile.cpp" />
     <ClCompile Include="utils\fileinfect\pdf.cpp" />
     <ClCompile Include="utils\fileinfect\powershell.cpp" />
@@ -266,7 +271,7 @@
     <ClCompile Include="utils\xmplay\xmplay.c">
       <DisableSpecificWarnings>4018;4244</DisableSpecificWarnings>
     </ClCompile>
-    <ClCompile Include="utils\xmplayer.cpp" />
+    <ClCompile Include="utils\xmplayer.cpp" Condition="'$(DUMB_BUILD)'!='true'" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils\colors.h" />
