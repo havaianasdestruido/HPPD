@@ -22,9 +22,8 @@ namespace Lang
         wchar_t localeName[LOCALE_NAME_MAX_LENGTH]{};
 
         if (!LCIDToLocaleName(
-            MAKELCID(langID, SORT_DEFAULT),
-            localeName,
-            LOCALE_NAME_MAX_LENGTH))
+    MAKELCID(langID, SORT_DEFAULT),
+    localeName))
         {
             return L"unknown";
         }
