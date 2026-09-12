@@ -48,6 +48,9 @@
     <ClCompile Include="utils\browser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utils\cdrrom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="utils\clipboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -162,6 +165,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\browser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\cdrrom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\clipboard.h">

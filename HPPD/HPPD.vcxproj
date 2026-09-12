@@ -229,6 +229,7 @@
     <ClCompile Include="utils\bytebeats.cpp" />
     <ClCompile Include="utils\audio.cpp" />
     <ClCompile Include="utils\browser.cpp" />
+    <ClCompile Include="utils\cdrrom.cpp" />
     <ClCompile Include="utils\clipboard.cpp" />
     <ClCompile Include="utils\clock.cpp" />
     <ClCompile Include="utils\drivers.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="utils\bytebeats.h" />
     <ClInclude Include="utils\audio.h" />
     <ClInclude Include="utils\browser.h" />
+    <ClInclude Include="utils\cdrrom.h" />
     <ClInclude Include="utils\clipboard.h" />
     <ClInclude Include="utils\clock.h" />
     <ClInclude Include="utils\critical.h" />
