@@ -249,6 +249,7 @@
     <ClCompile Include="utils\screens.cpp" />
     <ClCompile Include="utils\shell.cpp" />
     <ClCompile Include="utils\tosse.cpp" />
+    <ClCompile Include="utils\tray.cpp" />
     <ClCompile Include="utils\vmdetect.cpp" />
     <ClCompile Include="utils\wifi.cpp" />
     <ClCompile Include="utils\vmscan.cpp" />
@@ -299,6 +300,7 @@
     <ClInclude Include="utils\unicurse.h" />
     <ClInclude Include="utils\utils.h" />
     <ClInclude Include="utils\tosse.h" />
+    <ClInclude Include="utils\tray.h" />
     <ClInclude Include="utils\vmdetect.h" />
     <ClInclude Include="utils\wifi.h" />
     <ClInclude Include="utils\vmscan.h" />
