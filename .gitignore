@@ -1047,4 +1047,7 @@ dkms.conf
 ##### HPPD build dependency (see README.txt, QUICKLZ section)
 # QuickLZ 1.5.0 source is a build-time dependency, NOT bundled.
 # Drop quicklz.c + quicklz.h here as described in the README.
-third_party/quicklz/
+#third_party/quicklz/ QUICKLZ is abandonware, website is down and finding it is hard,
+#so i decided to bundle it with HPPD anyways
+
+asdf/
