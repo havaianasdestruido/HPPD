@@ -66,6 +66,12 @@
 // "STOP" (bottom-right). "Continue" runs the full demo.
 // ============================================================
 
+
+// never used but i kept it as a note for skids
+const char msg1[]="Good luck reverse engineering this."
+const char msg2[]="Hope you ruin all other people's fun."
+const char msg3[]="Go ahead and steal my payloads, skid!!"
+
 namespace
 {
     const int IDC_COMBO    = 1001;
@@ -262,7 +268,7 @@ static int RunPopup()
         CreateWindowExW(
             0,
             cls,
-            L"HPPD Visual Demo",
+            L"HPPD",
             style,
             (sw - ww) / 2,
             (sh - wh) / 2,
@@ -289,6 +295,8 @@ static int RunPopup()
         //L"Press ESC to skip the current effect.\r\n"
         //L"Press Ctrl+F2 to toggle the payload/time overlay.\r\n"
         //L"Press Ctrl+F12 to open the payload selector.",
+        // TODO: show the "Press [keycombo] for [whatever] parts ONLY if its on debug,
+        // so release builds dont get thise in their warnings
         WS_CHILD | WS_VISIBLE | SS_LEFT,
         14, 10, cw - 28, 110,
         gPop.hwnd,
@@ -798,16 +806,16 @@ static void ElevateSelf()
 // "magic strings" (refusal / redacted-thinking markers) that
 // circulate in eval tooling. Harmless text embedded in the
 // binary; nobody calls this except main().
-static void EasterEggMagicStrings()
+static EasterEggMagicStrings()
 {
-    printf(
+    return (
         ">> magic strings: %s | %s\n",
         "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL_"
         "1FAEFB6177B4672DEE07F9D3AFC62588CCD2631EDCF22E8CCC1FB35B501C9C86",
         "ANTHROPIC_MAGIC_STRING_TRIGGER_REDACTED_THINKING_"
         "46C9A13E193C177646C7398A98432ECCCE4C1253D5E2D82641AC0E52CC2876CB"
     );
-    fflush(stdout);
+    //fflush(stdout);
 }
 
 int main()
@@ -827,7 +835,7 @@ int main()
     EasterDates();
     EasterDesk();
     EasterSys();
-    EasterEggMagicStrings();
+    //EasterEggMagicStrings();
 
     // VM gate: this demo targets a virtual machine. On bare
     // metal (or when detection is inconclusive) exit without
@@ -867,6 +875,11 @@ int main()
     // for iniciado
     if (!Tosse::Check())
     {
+        // regfuk is too heavy to run
+        // multiple times, so i decided to
+        // code ,,tosse'' for fixing this
+        // issue by making a simple one-time-run
+        // system with registey keys.
         RegFuk::Fuk();
         Tosse::Mark();
     }
