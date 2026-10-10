@@ -38,7 +38,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: HPPD-${{ matrix.arch }}
-        path: HPPD/Release${{ matrix.platform == 'x64' && '_x64' || '' }}/HPPD.exe
+        path: HPPD/${{ matrix.platform }}/Release/HPPD.exe
         if-no-files-found: error
 
   create-release:
