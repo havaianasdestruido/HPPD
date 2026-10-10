@@ -39,8 +39,8 @@ jobs:
       with:
         name: HPPD-${{ matrix.arch }}
         path: |
-          HPPD/x64/Release/HPPD.exe
-          HPPD/Release/HPPD.exe
+          x64/Release/HPPD.exe
+          Release/HPPD.exe
         if-no-files-found: error
 
   create-release:
