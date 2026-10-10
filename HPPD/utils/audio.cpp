@@ -18,7 +18,7 @@ int DeviceCount()
 	return waveOutGetNumDevs();
 }
 
-const HWAVEOUT kMapper = reinterpret_cast<HWAVEOUT>(WAVE_MAPPER);
+const HWAVEOUT kMapper = reinterpret_cast<HWAVEOUT>(static_cast<UINT_PTR>(WAVE_MAPPER));
 
 bool GetVolume(DWORD& left, DWORD& right)
 {

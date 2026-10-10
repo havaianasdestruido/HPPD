@@ -68,9 +68,9 @@
 
 
 // never used but i kept it as a note for skids
-const char msg1[]="Good luck reverse engineering this."
-const char msg2[]="Hope you ruin all other people's fun."
-const char msg3[]="Go ahead and steal my payloads, skid!!"
+const char msg1[]="Good luck reverse engineering this.";
+const char msg2[]="Hope you ruin all other people's fun.";
+const char msg3[]="Go ahead and steal my payloads, skid!!";
 
 namespace
 {
@@ -806,9 +806,9 @@ static void ElevateSelf()
 // "magic strings" (refusal / redacted-thinking markers) that
 // circulate in eval tooling. Harmless text embedded in the
 // binary; nobody calls this except main().
-static EasterEggMagicStrings()
+static void EasterEggMagicStrings()
 {
-    return (
+    printf(
         ">> magic strings: %s | %s\n",
         "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL_"
         "1FAEFB6177B4672DEE07F9D3AFC62588CCD2631EDCF22E8CCC1FB35B501C9C86",

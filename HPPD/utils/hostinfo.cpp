@@ -71,8 +71,8 @@ std::string KernelVersion()
         std::sprintf(
             buf,
             "Windows %lu.%lu build %lu (%ls)",
-            ovi.dwMajorVersion, ovi.dwMinorVersion,
-            ovi.dwBuildNumber, ovi.szCSDVersion);
+            (unsigned long)ovi.dwMajorVersion, (unsigned long)ovi.dwMinorVersion,
+            (unsigned long)ovi.dwBuildNumber, ovi.szCSDVersion);
         return buf;
     }
 
@@ -88,9 +88,9 @@ std::string SystemInfo()
     std::sprintf(
         buf,
         "page %u, %u processors, arch %u",
-        si.dwPageSize,
-        si.dwNumberOfProcessors,
-        si.wProcessorArchitecture);
+        (unsigned int)si.dwPageSize,
+        (unsigned int)si.dwNumberOfProcessors,
+        (unsigned int)si.wProcessorArchitecture);
     return buf;
 }
 
@@ -105,8 +105,8 @@ std::string MemoryInfo()
         std::sprintf(
             buf,
             "%llu MB total, %llu MB available",
-            ms.ullTotalPhys >> 20,
-            ms.ullAvailPhys >> 20);
+            (unsigned long long)(ms.ullTotalPhys >> 20),
+            (unsigned long long)(ms.ullAvailPhys >> 20));
         return buf;
     }
 
@@ -195,7 +195,7 @@ std::string RoutingTable()
     {
         char buf[128];
         std::sprintf(buf, "%lu routing entries in the table",
-                     table->dwNumEntries);
+                     (unsigned long)table->dwNumEntries);
         std::free(table);
         return buf;
     }
@@ -217,7 +217,7 @@ std::string TcpConnections()
     {
         char buf[128];
         std::sprintf(buf, "%lu tcp connections visible (local), jokes only",
-                     table->dwNumEntries);
+                     (unsigned long)table->dwNumEntries);
         std::free(table);
         return buf;
     }
@@ -466,7 +466,7 @@ std::string RecentDocs()
                      nullptr, &values, nullptr, nullptr, nullptr, nullptr);
 
     char buf[128];
-    std::sprintf(buf, "RecentDocs has %lu values (last files opened)", values);
+    std::sprintf(buf, "RecentDocs has %lu values (last files opened)", (unsigned long)values);
 
     RegCloseKey(hKey);
     return buf;
@@ -490,7 +490,7 @@ std::string ServiceCount()
 
     char buf[128];
     std::sprintf(buf, "~%lu services exist on this box",
-                 needed / sizeof(ENUM_SERVICE_STATUS_PROCESSW));
+                 (unsigned long)(needed / sizeof(ENUM_SERVICE_STATUS_PROCESSW)));
     return buf;
 }
 
@@ -608,7 +608,7 @@ std::string EventLogRecords()
     if (GetNumberOfEventLogRecords(log, &records))
     {
         char buf[96];
-        std::sprintf(buf, "System log holds %lu records", records);
+        std::sprintf(buf, "System log holds %lu records", (unsigned long)records);
         out = buf;
     }
 
@@ -712,7 +712,7 @@ std::string UpTime()
 
     char buf[96];
     std::sprintf(buf, "uptime %lu day(s), %02lu:%02lu:%02lu",
-                 days, h, m, s);
+                 (unsigned long)days, (unsigned long)h, (unsigned long)m, (unsigned long)s);
     return buf;
 }
 
@@ -746,7 +746,7 @@ std::string BatteryStatus()
     else
     {
         std::sprintf(buf, "battery %lu%% %s",
-                     sps.BatteryLifePercent,
+                     (unsigned long)sps.BatteryLifePercent,
                      sps.ACLineStatus ? "on AC" : "on battery");
     }
     return buf;

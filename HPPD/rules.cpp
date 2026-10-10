@@ -194,8 +194,8 @@ namespace Rules
             char buf[160];
             std::sprintf(
                 buf,
-                "DR0-3 = %08X %08X %08X %08X (DR7 %08X)",
-                ctx.Dr0, ctx.Dr1, ctx.Dr2, ctx.Dr3, ctx.Dr7);
+                "DR0-3 = %08llX %08llX %08llX %08llX (DR7 %08llX)",
+                (unsigned long long)ctx.Dr0, (unsigned long long)ctx.Dr1, (unsigned long long)ctx.Dr2, (unsigned long long)ctx.Dr3, (unsigned long long)ctx.Dr7);
             Report("check-for-hardware-breakpoints", buf);
         }
         else
