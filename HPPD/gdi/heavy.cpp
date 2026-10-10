@@ -3716,6 +3716,19 @@ DWORD WINAPI GDIPayload59(LPVOID)
 
         const float t = frame * 0.02f * speed;
 
+        // ⚡ Bolt: Performance optimization
+        // 💡 What: Extracted trigonometric calculations for source positions out of the per-pixel nested loops.
+        // 🎯 Why: Re-evaluating sinf() and cosf() inside the x/y loops redundantly recomputed the exact same
+        //    values w * h times per source.
+        // 📊 Impact: Substantially reduces CPU usage per frame (cuts trig calls from width*height*sources down to just sources).
+        std::vector<float> src_x(sources);
+        std::vector<float> src_y(sources);
+        for (int i = 0; i < sources; ++i)
+        {
+            src_x[i] = w * 0.5f + cosf(sd.phase + i * 4.1f) * w * 0.25f;
+            src_y[i] = h * 0.5f + sinf(sd.phase + i * 2.7f) * h * 0.25f;
+        }
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
@@ -3724,15 +3737,8 @@ DWORD WINAPI GDIPayload59(LPVOID)
 
                 for (int i = 0; i < sources; ++i)
                 {
-                    float sx =
-                        w * 0.5f +
-                        cosf(sd.phase + i * 4.1f) * w * 0.25f;
-                    float sy =
-                        h * 0.5f +
-                        sinf(sd.phase + i * 2.7f) * h * 0.25f;
-
-                    float dx = x - sx;
-                    float dy = y - sy;
+                    float dx = x - src_x[i];
+                    float dy = y - src_y[i];
                     float d = sqrtf(dx * dx + dy * dy);
 
                     acc += sinf(d * 0.03f - t - i * 2.0f) * 0.5f + 0.5f;
