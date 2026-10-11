@@ -1799,6 +1799,20 @@ DWORD WINAPI GDIPayload69(LPVOID)
         const int shift = (f * stride) % w;
         const float time = f * 0.07f;
 
+        // Bolt optimization: Extract trig calculation of 'band' out of per-pixel loops.
+        // Avoids redundant w * h trig calls, reducing to w calls per frame.
+        std::vector<float> band_x(w);
+        for (int x = 0; x < w; ++x)
+        {
+            band_x[x] =
+                0.45f +
+                0.55f *
+                sinf(
+                    x * 0.08f -
+                    time
+                );
+        }
+
         for (int y = 0; y < h; ++y)
         {
             const uint32_t* src =
@@ -1821,13 +1835,7 @@ DWORD WINAPI GDIPayload69(LPVOID)
                 );
 
                 // rolling scanner bands = fake barcode stripes
-                const float band =
-                    0.45f +
-                    0.55f *
-                    sinf(
-                        x * 0.08f -
-                        time
-                    );
+                const float band = band_x[x];
 
                 frame.pixels[y * w + x] =
                     RGBPixel(
