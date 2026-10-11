@@ -396,23 +396,31 @@ DWORD WINAPI GDIPayload6(LPVOID)
             SRCCOPY
         );
 
+        // ⚡ Bolt: Performance optimization
+        // 💡 What: Extracted trigonometric calculation of 'wave' out of the per-pixel nested loops.
+        // 🎯 Why: Re-evaluating std::sin() inside the x/y loops redundantly recomputed the exact same values w * h times per frame instead of just w times.
+        // 📊 Impact: Substantially reduces CPU usage per frame (cuts trig calls from width*height down to just width).
+        std::vector<int> wave_x(w);
+        for (int x = 0; x < w; ++x)
+        {
+            wave_x[x] =
+                static_cast<int>(
+                    std::sin(
+                        (x + t * 4 + sd.phase) * 0.025
+                    ) * (32 + sd.amp / 2)
+                );
+        }
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
             {
                 const int i = y * w + x;
 
-                int wave =
-                    static_cast<int>(
-                        std::sin(
-                            (x + t * 4 + sd.phase) * 0.025
-                        ) * (32 + sd.amp / 2)
-                        );
-
                 pixels[i] =
                     ShiftHSL(
                         pixels[i],
-                        wave / 255.0f * sd.dir,
+                        wave_x[x] / 255.0f * sd.dir,
                         0.0f,
                         0.0f
                     );
