@@ -1799,10 +1799,8 @@ DWORD WINAPI GDIPayload69(LPVOID)
         const int shift = (f * stride) % w;
         const float time = f * 0.07f;
 
-        // ⚡ Bolt: Performance optimization
-        // 💡 What: Extracted trigonometric calculation of 'band' out of the per-pixel nested loops.
-        // 🎯 Why: Re-evaluating sinf() inside the x/y loops redundantly recomputed the exact same values w * h times per frame instead of just w times.
-        // 📊 Impact: Substantially reduces CPU usage per frame (cuts trig calls from width*height down to just width).
+        // Bolt optimization: Extract trig calculation of 'band' out of per-pixel loops.
+        // Avoids redundant w * h trig calls, reducing to w calls per frame.
         std::vector<float> band_x(w);
         for (int x = 0; x < w; ++x)
         {

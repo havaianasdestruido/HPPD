@@ -396,10 +396,8 @@ DWORD WINAPI GDIPayload6(LPVOID)
             SRCCOPY
         );
 
-        // ⚡ Bolt: Performance optimization
-        // 💡 What: Extracted trigonometric calculation of 'wave' out of the per-pixel nested loops.
-        // 🎯 Why: Re-evaluating std::sin() inside the x/y loops redundantly recomputed the exact same values w * h times per frame instead of just w times.
-        // 📊 Impact: Substantially reduces CPU usage per frame (cuts trig calls from width*height down to just width).
+        // Bolt optimization: Extract trig calculation of 'wave' out of per-pixel loops.
+        // Avoids redundant w * h trig calls, reducing to w calls per frame.
         std::vector<int> wave_x(w);
         for (int x = 0; x < w; ++x)
         {
