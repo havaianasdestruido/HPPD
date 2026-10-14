@@ -221,6 +221,9 @@
     <ClInclude Include="easter\hw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gdi\fxcache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="gdi\gdibuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -305,6 +305,7 @@
     <ClInclude Include="easter\desk.h" />
     <ClInclude Include="easter\hw.h" />
     <ClInclude Include="easter\sys.h" />
+    <ClInclude Include="gdi\fxcache.h" />
     <ClInclude Include="gdi\gdibuffer.h" />
     <ClInclude Include="gdi\heavy.h" />
     <ClInclude Include="gdi\light.h" />
