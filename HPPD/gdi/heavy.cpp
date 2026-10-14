@@ -1,5 +1,6 @@
-﻿#include "../payloads.h"
+#include "../payloads.h"
 #include "gdibuffer.h"
+#include "fxcache.h"
 #include "heavy.h"
 
 #ifdef _MSC_VER
@@ -370,6 +371,11 @@ DWORD WINAPI GDIPayload6(LPVOID)
 
     HGDIOBJ oldBmp = SelectObject(dcCopy, bmp);
 
+    // RAM cache (reused every frame, allocated once): the
+    // per-column wave table is refilled per frame below, but
+    // the buffer itself no longer allocates per frame.
+    std::vector<int> wave_x(w);
+
     int t = 0;
 
     for (int frame = 0; frame < 250; ++frame)
@@ -398,7 +404,7 @@ DWORD WINAPI GDIPayload6(LPVOID)
 
         // Bolt optimization: Extract trig calculation of 'wave' out of per-pixel loops.
         // Avoids redundant w * h trig calls, reducing to w calls per frame.
-        std::vector<int> wave_x(w);
+        // (wave_x itself is allocated once in RAM before the frame loop.)
         for (int x = 0; x < w; ++x)
         {
             wave_x[x] =
@@ -503,6 +509,46 @@ DWORD WINAPI GDIPayload7(LPVOID)
 
     HGDIOBJ oldBmp = SelectObject(dcCopy, bmp);
 
+    // RAM cache: three of the four plasma terms never change
+    // between frames - sinX depends only on x, sinY only on y,
+    // sinDiag only on (x + y) and sinRadial only on the pixel's
+    // distance from the origin. Compute every sin()/sqrt()
+    // ONCE here (w + h + (w + h) + w*h evaluations) and read
+    // them back per frame, instead of redoing 4 trig calls +
+    // 1 sqrt for every pixel of every frame. The cached values
+    // use the exact same double expressions as the old inner
+    // loop, so the picture is bit-identical.
+    std::vector<double> sinX(w);
+    std::vector<double> sinY(h);
+    std::vector<double> sinDiag(w + h);
+    std::vector<double> sinRadial(
+        static_cast<size_t>(w) * static_cast<size_t>(h)
+    );
+
+    for (int x = 0; x < w; ++x)
+        sinX[x] = std::sin((x + sd.phase) / (16.0 - sd.amp));
+
+    for (int y = 0; y < h; ++y)
+        sinY[y] = std::sin((y + sd.phase) / (8.0 - sd.amp / 2));
+
+    for (int s = 0; s < w + h; ++s)
+        sinDiag[s] = std::sin((s + sd.phase) / 16.0);
+
+    for (int y = 0; y < h; ++y)
+    {
+        for (int x = 0; x < w; ++x)
+        {
+            sinRadial[static_cast<size_t>(y) * w + x] =
+                std::sin(
+                    std::sqrt(
+                        static_cast<double>(
+                            x * x + y * y
+                            )
+                    ) / (8.0 - sd.amp / 2)
+                );
+        }
+    }
+
     int t = 0;
 
     for (int frame = 0; frame < 220; ++frame)
@@ -535,22 +581,18 @@ DWORD WINAPI GDIPayload7(LPVOID)
             {
                 const int i = y * w + x;
 
+                // All four trig terms come from the RAM
+                // cache built before the frame loop.
                 double fx =
                     (
                         t +
-                        t * std::sin((x + sd.phase) / (16.0 - sd.amp)) +
+                        t * sinX[x] +
                         t +
-                        t * std::sin((y + sd.phase) / (8.0 - sd.amp / 2)) +
+                        t * sinY[y] +
                         t +
-                        t * std::sin((x + y + sd.phase) / 16.0) +
+                        t * sinDiag[x + y] +
                         t +
-                        t * std::sin(
-                            std::sqrt(
-                                static_cast<double>(
-                                    x * x + y * y
-                                    )
-                            ) / (8.0 - sd.amp / 2)
-                        )
+                        t * sinRadial[i]
                         ) / 4.0;
 
                 int wave =
@@ -646,6 +688,68 @@ DWORD WINAPI GDIPayload8(LPVOID)
 
     HGDIOBJ oldBmp = SelectObject(dcCopy, bmp);
 
+    // RAM cache: the fractal view never moves (cx/cy have no
+    // time term), so the per-pixel iteration count is identical
+    // on every frame. Run the up-to-35-step Mandelbrot
+    // iteration ONCE into iterMap (1 byte/pixel) and let each
+    // frame just colourise from it, instead of re-iterating
+    // the fractal w*h times per frame.
+    std::vector<uint8_t> iterMap(
+        static_cast<size_t>(w) * static_cast<size_t>(h)
+    );
+
+    {
+        const double fractalX = 2.5 / w;
+        const double fractalY = 1.90 / h;
+
+        std::vector<double> colX(w);
+        std::vector<double> rowY(h);
+
+        for (int x = 0; x < w; ++x)
+            colX[x] = x * fractalX - (2.0 - sd.phase * 0.0001);
+
+        for (int y = 0; y < h; ++y)
+            rowY[y] = y * fractalY - (0.95 - sd.phase * 0.0001);
+
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                const double cx = colX[x];
+                const double cy = rowY[y];
+
+                double zx = 0;
+                double zy = 0;
+
+                int iterations = 0;
+
+                while (
+                    zx * zx +
+                    zy * zy < 10.0 &&
+                    iterations < 35
+                    )
+                {
+                    double newX =
+                        zx * zx -
+                        zy * zy +
+                        cx;
+
+                    double newY =
+                        2.0 * zx * zy +
+                        cy;
+
+                    zx = newX;
+                    zy = newY;
+
+                    ++iterations;
+                }
+
+                iterMap[static_cast<size_t>(y) * w + x] =
+                    static_cast<uint8_t>(iterations);
+            }
+        }
+    }
+
     for (int frame = 0; frame < 120; ++frame)
     {
         if (FXAbort())
@@ -676,40 +780,9 @@ DWORD WINAPI GDIPayload8(LPVOID)
             {
                 int i = y * w + x;
 
-                double fractalX = 2.5 / w;
-                double fractalY = 1.90 / h;
-
-                double cx =
-                    x * fractalX - (2.0 - sd.phase * 0.0001);
-
-                double cy =
-                    y * fractalY - (0.95 - sd.phase * 0.0001);
-
-                double zx = 0;
-                double zy = 0;
-
-                int iterations = 0;
-
-                while (
-                    zx * zx +
-                    zy * zy < 10.0 &&
-                    iterations < 35
-                    )
-                {
-                    double newX =
-                        zx * zx -
-                        zy * zy +
-                        cx;
-
-                    double newY =
-                        2.0 * zx * zy +
-                        cy;
-
-                    zx = newX;
-                    zy = newY;
-
-                    ++iterations;
-                }
+                // Iteration count from the RAM cache (the
+                // fractal itself was iterated once, above).
+                const int iterations = iterMap[i];
 
                 uint32_t px = pixels[i];
 
@@ -1466,12 +1539,31 @@ DWORD WINAPI GDIPayload17(LPVOID)
 
     ULONGLONG nextFrame = start;
 
+    // RAM cache for the per-diagonal pulse table (refilled
+    // per frame inside the loop, allocated once here).
+    std::vector<int> pulseDiag(s.w + s.h);
+
     while (!FXTimeout(start, 5000))
     {
         s.Capture();
 
         uint32_t* p =
             s.pixels;
+
+        // RAM cache refill: 'pulse' only depends on (x + y),
+        // so evaluate its sin() once per diagonal (w + h
+        // calls) instead of once per pixel (w * h calls).
+        for (int d = 0; d < s.w + s.h; ++d)
+        {
+            pulseDiag[d] =
+                static_cast<int>(
+                    std::sin(
+                        (d + t + sd.phase / 2)
+                        * 0.025
+                    ) *
+                    (30.0 + sd.amp * 2)
+                    );
+        }
 
         for (int y = 1;
             y < s.h - 1;
@@ -1545,13 +1637,7 @@ DWORD WINAPI GDIPayload17(LPVOID)
                     abs(ub - db);
 
                 int pulse =
-                    static_cast<int>(
-                        std::sin(
-                            (x + y + t + sd.phase / 2)
-                            * 0.025
-                        ) *
-                        (30.0 + sd.amp * 2)
-                        );
+                    pulseDiag[x + y];
 
                 p[i] =
                     ShiftHSL(
@@ -2003,12 +2089,32 @@ DWORD WINAPI GDIPayload23(LPVOID)
 
     ULONGLONG nextFrame = start;
 
+    // RAM cache for the per-column aberration table (refilled
+    // per frame inside the loop, allocated once here).
+    std::vector<int> aberrX(s.w);
+
     while (!FXTimeout(start, 5000))
     {
         s.Capture();
 
         uint32_t* p =
             s.pixels;
+
+        // RAM cache refill: 'aberration' only depends on x,
+        // so evaluate its sin() once per column (w calls)
+        // instead of once per pixel (w * h calls).
+        for (int x = 0; x < s.w; ++x)
+        {
+            aberrX[x] =
+                static_cast<int>(
+                    std::sin(
+                        x * 0.015 +
+                        t * 0.08 +
+                        sd.phase * 0.0002
+                    ) *
+                    (16.0 + sd.amp)
+                    );
+        }
 
         for (int y = 0; y < s.h; ++y)
         {
@@ -2021,14 +2127,7 @@ DWORD WINAPI GDIPayload23(LPVOID)
                     y * s.w + x;
 
                 int aberration =
-                    static_cast<int>(
-                        std::sin(
-                            x * 0.015 +
-                            t * 0.08 +
-                            sd.phase * 0.0002
-                        ) *
-                        (16.0 + sd.amp)
-                        );
+                    aberrX[x];
 
                 p[i] =
                     ShiftHSL(
@@ -2457,6 +2556,21 @@ DWORD WINAPI GDIPayload50(LPVOID)
     const float cx = w * 0.5f;
     const float cy = h * 0.5f;
 
+    // RAM cache: radius + angle of every pixel are the same
+    // on every frame, so compute sqrtf/atan2f ONCE here and
+    // read them back per frame (see gdi/fxcache.h).
+    FxCache::PolarMap polar;
+
+    polar.Build(
+        w, h, cx, cy,
+        FxCache::PolarRadius | FxCache::PolarAngle
+    );
+
+    // cos/sin of the +/-0.035 rad channel offset, for the
+    // angle-addition identities used in the pixel loop.
+    const float cosOff = cosf(0.035f);
+    const float sinOff = sinf(0.035f);
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -2487,14 +2601,16 @@ DWORD WINAPI GDIPayload50(LPVOID)
         {
             for (int x = 0; x < w; ++x)
             {
-                float dx = x - cx;
-                float dy = y - cy;
+                const size_t pi =
+                    static_cast<size_t>(y) * w + x;
 
+                // Radius/angle from the RAM cache (built once
+                // before the frame loop, not per frame).
                 float radius =
-                    sqrtf(dx * dx + dy * dy);
+                    polar.radius[pi];
 
                 float angle =
-                    atan2f(dy, dx);
+                    polar.angle[pi];
 
                 float vortex =
                     sinf(
@@ -2505,44 +2621,56 @@ DWORD WINAPI GDIPayload50(LPVOID)
 
                 float a = angle + vortex;
 
+                // One cosf/sinf pair per pixel; the +/-0.035
+                // channel angles come from the angle-addition
+                // identities (algebraically identical, saves
+                // 4 more trig calls per pixel).
+                float ca = cosf(a);
+                float sa = sinf(a);
+
+                float caP = ca * cosOff - sa * sinOff;
+                float saP = sa * cosOff + ca * sinOff;
+                float caM = ca * cosOff + sa * sinOff;
+                float saM = sa * cosOff - ca * sinOff;
+
                 int rx =
                     ClampI(
-                        (int)(cx + cosf(a) * radius),
+                        (int)(cx + ca * radius),
                         0,
                         w - 1
                     );
 
                 int gx =
                     ClampI(
-                        (int)(cx + cosf(a + 0.035f) * radius),
+                        (int)(cx + caP * radius),
                         0,
                         w - 1
                     );
 
                 int bx =
                     ClampI(
-                        (int)(cx + cosf(a - 0.035f) * radius),
+                        (int)(cx + caM * radius),
                         0,
                         w - 1
                     );
 
                 int ry =
                     ClampI(
-                        (int)(cy + sinf(a) * radius),
+                        (int)(cy + sa * radius),
                         0,
                         h - 1
                     );
 
                 int gy =
                     ClampI(
-                        (int)(cy + sinf(a + 0.035f) * radius),
+                        (int)(cy + saP * radius),
                         0,
                         h - 1
                     );
 
                 int by =
                     ClampI(
-                        (int)(cy + sinf(a - 0.035f) * radius),
+                        (int)(cy + saM * radius),
                         0,
                         h - 1
                     );
@@ -2630,6 +2758,34 @@ DWORD WINAPI GDIPayload51(LPVOID)
     const float cx = w * .5f;
     const float cy = h * .5f;
 
+    // RAM cache: radius / angle / unit vectors of every pixel
+    // never change between frames - compute sqrtf, atan2f,
+    // cosf and sinf ONCE here (see gdi/fxcache.h). The extra
+    // sinA7/cosA7 maps cache sinf/cosf of (angle * 7) so the
+    // per-frame sinf(a * 7 + t) also becomes two multiplies
+    // via the angle-addition identity.
+    FxCache::PolarMap polar;
+
+    polar.Build(w, h, cx, cy);
+
+    const size_t pixelCount =
+        static_cast<size_t>(w) * static_cast<size_t>(h);
+
+    std::vector<float> sinA7(pixelCount);
+    std::vector<float> cosA7(pixelCount);
+
+    for (size_t i = 0; i < pixelCount; ++i)
+    {
+        const float a7 = polar.angle[i] * 7.0f;
+
+        sinA7[i] = sinf(a7);
+        cosA7[i] = cosf(a7);
+    }
+
+    // The raw angle map is only needed to build the maps
+    // above; release it so RAM holds just what frames read.
+    std::vector<float>().swap(polar.angle);
+
     for (int frame = 0; frame < 240; ++frame)
     {
         if (FXAbort())
@@ -2656,23 +2812,26 @@ DWORD WINAPI GDIPayload51(LPVOID)
 
         float t = frame * .055f;
 
+        // Per-frame scalars for sinf(a * 7 + t) via the
+        // cached sinA7/cosA7 maps (angle-addition identity).
+        const float cosT = cosf(t);
+        const float sinT = sinf(t);
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
             {
-                float dx = x - cx;
-                float dy = y - cy;
+                const size_t pi =
+                    static_cast<size_t>(y) * w + x;
 
+                // Radius + unit vectors from the RAM cache.
                 float r =
-                    sqrtf(dx * dx + dy * dy);
-
-                float a =
-                    atan2f(dy, dx);
+                    polar.radius[pi];
 
                 float wave =
                     sinf(
                         r * 0.028f +
-                        sinf(a * 7.0f + t) * 3.0f -
+                        (sinA7[pi] * cosT + cosA7[pi] * sinT) * 3.0f -
                         t * 3.0f
                     );
 
@@ -2682,12 +2841,12 @@ DWORD WINAPI GDIPayload51(LPVOID)
 
                 float sx =
                     cx +
-                    cosf(a) *
+                    polar.cosA[pi] *
                     (r + displacement);
 
                 float sy =
                     cy +
-                    sinf(a) *
+                    polar.sinA[pi] *
                     (r + displacement);
 
                 int ix =
@@ -2862,6 +3021,33 @@ DWORD WINAPI GDIPayload53(LPVOID)
         return 0;
     }
 
+    int cx = w / 2;
+    int cy = h / 2;
+
+    // RAM cache: radius / unit vectors of every pixel never
+    // change between frames - compute sqrtf, atan2f, cosf and
+    // sinf ONCE here (see gdi/fxcache.h). sinA6 additionally
+    // caches sinf(angle * 6), the tunnel's static twist term.
+    FxCache::PolarMap polar;
+
+    polar.Build(
+        w, h,
+        static_cast<float>(cx),
+        static_cast<float>(cy)
+    );
+
+    const size_t pixelCount =
+        static_cast<size_t>(w) * static_cast<size_t>(h);
+
+    std::vector<float> sinA6(pixelCount);
+
+    for (size_t i = 0; i < pixelCount; ++i)
+        sinA6[i] = sinf(polar.angle[i] * 6.0f);
+
+    // The raw angle map is only needed to build sinA6;
+    // release it so RAM holds just what frames read.
+    std::vector<float>().swap(polar.angle);
+
     for (int frame = 0; frame < 240; ++frame)
     {
         if (FXAbort())
@@ -2893,28 +3079,24 @@ DWORD WINAPI GDIPayload53(LPVOID)
             1.0f +
             sinf(t) * .025f;
 
-        int cx = w / 2;
-        int cy = h / 2;
-
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
             {
-                float dx = (float)(x - cx);
-                float dy = (float)(y - cy);
+                const size_t pi =
+                    static_cast<size_t>(y) * w + x;
 
+                // Radius + unit vectors + twist from the
+                // RAM cache (built once, not per frame).
                 float r =
-                    sqrtf(dx * dx + dy * dy);
-
-                float a =
-                    atan2f(dy, dx);
+                    polar.radius[pi];
 
                 float tunnel =
                     1.0f +
                     sinf(
                         r * .025f -
                         t * 5.0f +
-                        sinf(a * 6.0f) * 2.0f
+                        sinA6[pi] * 2.0f
                     ) * .04f;
 
                 float nr =
@@ -2922,14 +3104,14 @@ DWORD WINAPI GDIPayload53(LPVOID)
 
                 int sx =
                     ClampI(
-                        (int)(cx + cosf(a) * nr),
+                        (int)(cx + polar.cosA[pi] * nr),
                         0,
                         w - 1
                     );
 
                 int sy =
                     ClampI(
-                        (int)(cy + sinf(a) * nr),
+                        (int)(cy + polar.sinA[pi] * nr),
                         0,
                         h - 1
                     );
@@ -2995,6 +3177,43 @@ DWORD WINAPI GDIPayload54(LPVOID)
         return 0;
     }
 
+    const int cell = 80;
+
+    // RAM cache (frame-invariant): each pixel's cell-space
+    // position fx/fy and cell index gx/gy only depend on x/y,
+    // so the division + floorf are done ONCE here instead of
+    // for every pixel of every frame.
+    std::vector<float> colFx(w);
+    std::vector<float> colGx(w);
+    std::vector<float> rowFy(h);
+    std::vector<float> rowGy(h);
+
+    for (int x = 0; x < w; ++x)
+    {
+        colFx[x] = x / (float)cell;
+        colGx[x] = floorf(colFx[x]);
+    }
+
+    for (int y = 0; y < h; ++y)
+    {
+        rowFy[y] = y / (float)cell;
+        rowGy[y] = floorf(rowFy[y]);
+    }
+
+    // RAM cache (refilled per frame): the feature-point trig
+    // in the 3x3 cell search only depends on the CELL index
+    // and t - sinf(gy + oy + t) / cosf(gx + ox - t) - yet the
+    // old loop re-evaluated both 9 times per pixel. One entry
+    // per possible cell coordinate (index = cell + 1, covering
+    // the -1 neighbour) reduces that to ~w/80 + h/80 trig
+    // calls per frame. Table values use the exact same float
+    // expressions as the old inner loop.
+    const int maxCellX = static_cast<int>(colGx[w - 1]);
+    const int maxCellY = static_cast<int>(rowGy[h - 1]);
+
+    std::vector<float> sinCellY(maxCellY + 3);
+    std::vector<float> cosCellX(maxCellX + 3);
+
     for (int frame = 0; frame < 160; ++frame)
     {
         if (FXAbort())
@@ -3022,23 +3241,33 @@ DWORD WINAPI GDIPayload54(LPVOID)
         float t =
             frame * .035f;
 
-        const int cell = 80;
+        // Refill the per-frame cell trig tables (see the RAM
+        // cache built before the frame loop) and hoist the
+        // frame-constant sinf(t) out of the pixel loop.
+        for (int c = -1; c <= maxCellY + 1; ++c)
+            sinCellY[c + 1] = sinf(static_cast<float>(c) + t);
+
+        for (int c = -1; c <= maxCellX + 1; ++c)
+            cosCellX[c + 1] = cosf(static_cast<float>(c) - t);
+
+        const float sinT = sinf(t);
 
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
             {
+                // Cell-space position/index from the RAM cache.
                 float fx =
-                    x / (float)cell;
+                    colFx[x];
 
                 float fy =
-                    y / (float)cell;
+                    rowFy[y];
 
                 float gx =
-                    floorf(fx);
+                    colGx[x];
 
                 float gy =
-                    floorf(fy);
+                    rowGy[y];
 
                 float best = 999999.0f;
 
@@ -3049,20 +3278,16 @@ DWORD WINAPI GDIPayload54(LPVOID)
                         float px =
                             gx + ox +
                             .5f *
-                            sinf(
-                                gy +
-                                oy +
-                                t
-                            );
+                            sinCellY[
+                                static_cast<int>(gy) + oy + 1
+                            ];
 
                         float py =
                             gy + oy +
                             .5f *
-                            cosf(
-                                gx +
-                                ox -
-                                t
-                            );
+                            cosCellX[
+                                static_cast<int>(gx) + ox + 1
+                            ];
 
                         float dx = fx - px;
                         float dy = fy - py;
@@ -3083,7 +3308,7 @@ DWORD WINAPI GDIPayload54(LPVOID)
                     ShiftHSL(
                         buf.pixels[y * w + x],
                         edge *
-                        sinf(t) *
+                        sinT *
                         .3f,
                         edge * .08f,
                         0.0f
@@ -3135,6 +3360,39 @@ DWORD WINAPI GDIPayload55(LPVOID)
         return 0;
     }
 
+    // RAM cache: the normalised coordinates and their scaled
+    // forms only depend on x or y, so build them ONCE here.
+    // rowSin/colCos are refilled per frame (they carry t);
+    // the rest never change. This halves the per-pixel trig:
+    // the inner sinf(ny * 8 + t) / cosf(nx * 9 + t) become
+    // table reads, leaving only the two outer sinf calls.
+    std::vector<float> colNx17(w);
+    std::vector<float> colNx9(w);
+    std::vector<float> rowNy13(h);
+    std::vector<float> rowNy8(h);
+    std::vector<float> colCos(w);
+    std::vector<float> rowSin(h);
+
+    for (int x = 0; x < w; ++x)
+    {
+        const float nx =
+            (x - w * .5f) /
+            (float)w;
+
+        colNx17[x] = nx * 17.0f;
+        colNx9[x] = nx * 9.0f;
+    }
+
+    for (int y = 0; y < h; ++y)
+    {
+        const float ny =
+            (y - h * .5f) /
+            (float)h;
+
+        rowNy13[y] = ny * 13.0f;
+        rowNy8[y] = ny * 8.0f;
+    }
+
     for (int frame = 0; frame < 230; ++frame)
     {
         if (FXAbort())
@@ -3162,28 +3420,27 @@ DWORD WINAPI GDIPayload55(LPVOID)
         float t =
             frame * .04f;
 
+        // Refill the two time-carrying axis tables.
+        for (int x = 0; x < w; ++x)
+            colCos[x] = cosf(colNx9[x] + t);
+
+        for (int y = 0; y < h; ++y)
+            rowSin[y] = sinf(rowNy8[y] + t);
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
             {
-                float nx =
-                    (x - w * .5f) /
-                    (float)w;
-
-                float ny =
-                    (y - h * .5f) /
-                    (float)h;
-
                 float q =
                     sinf(
-                        nx * 17.0f +
-                        sinf(ny * 8.0f + t)
+                        colNx17[x] +
+                        rowSin[y]
                     );
 
                 float r =
                     sinf(
-                        ny * 13.0f -
-                        cosf(nx * 9.0f + t)
+                        rowNy13[y] -
+                        colCos[x]
                     );
 
                 int sx =
@@ -3268,6 +3525,20 @@ DWORD WINAPI GDIPayload56(LPVOID)
     int cx = w / 2;
     int cy = h / 2;
 
+    // RAM cache: every pixel's distance from the centre is
+    // the same on every frame, so the sqrtf runs ONCE here
+    // and frames just read the radius back (gdi/fxcache.h
+    // documents the shared polar-cache scheme; this payload
+    // only needs the radius part).
+    FxCache::PolarMap polar;
+
+    polar.Build(
+        w, h,
+        static_cast<float>(cx),
+        static_cast<float>(cy),
+        FxCache::PolarRadius
+    );
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -3303,7 +3574,9 @@ DWORD WINAPI GDIPayload56(LPVOID)
                 float dy = (float)(y - cy);
 
                 float r =
-                    sqrtf(dx * dx + dy * dy);
+                    polar.radius[
+                        static_cast<size_t>(y) * w + x
+                    ];
 
                 float factor =
                     1.0f +
@@ -3608,6 +3881,15 @@ DWORD WINAPI GDIPayload58(LPVOID)
     const float scaleUp = 0.86f;
     const float rotStep = (float)(sd.phase - 1024) / 1024.0f * 0.02f;
 
+    // RAM cache (refilled per layer): the rotated coordinates
+    // are separable - x * c, x * s depend only on x and
+    // y * s, y * c only on y - so the four per-pixel float
+    // multiplies become two table reads + one add/subtract.
+    std::vector<float> xCos(w);
+    std::vector<float> xSin(w);
+    std::vector<float> ySin(h);
+    std::vector<float> yCos(h);
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -3629,12 +3911,28 @@ DWORD WINAPI GDIPayload58(LPVOID)
             float c = cosf(ang);
             float s = sinf(ang);
 
+            // Refill this layer's axis tables + hoist the
+            // per-pixel (int)(t * 6) shift (layer-constant).
+            for (int x = 0; x < w; ++x)
+            {
+                xCos[x] = x * c;
+                xSin[x] = x * s;
+            }
+
+            for (int y = 0; y < h; ++y)
+            {
+                ySin[y] = y * s;
+                yCos[y] = y * c;
+            }
+
+            const int tShift = (int)(t * 6);
+
             for (int y = 0; y < h; ++y)
             {
                 for (int x = 0; x < w; ++x)
                 {
-                    int xm = (int)(x * c - y * s) + (int)(t * 6);
-                    int ym = (int)(x * s + y * c);
+                    int xm = (int)(xCos[x] - ySin[y]) + tShift;
+                    int ym = (int)(xSin[x] + yCos[y]);
 
                     xm = (xm + w) % w;
                     ym = (ym + h) % h;
@@ -3706,6 +4004,46 @@ DWORD WINAPI GDIPayload59(LPVOID)
     const int sources = 3 + (sd.amp % 2);
     const float speed = 0.015f + sd.amp * 0.003f;
 
+    // RAM cache: the wave sources never move (their positions
+    // have no time term), so each source's per-pixel distance
+    // - and the d * 0.03f phase fed to sinf - is identical on
+    // every frame. Compute the sqrtf ONCE here into srcPhase
+    // (one float map per source) and let frames read it back
+    // instead of redoing sources * w * h sqrtf per frame.
+    std::vector<float> src_x(sources);
+    std::vector<float> src_y(sources);
+
+    for (int i = 0; i < sources; ++i)
+    {
+        src_x[i] = w * 0.5f + cosf(sd.phase + i * 4.1f) * w * 0.25f;
+        src_y[i] = h * 0.5f + sinf(sd.phase + i * 2.7f) * h * 0.25f;
+    }
+
+    const size_t pixelCount =
+        static_cast<size_t>(w) * static_cast<size_t>(h);
+
+    std::vector<float> srcPhase(
+        static_cast<size_t>(sources) * pixelCount
+    );
+
+    for (int i = 0; i < sources; ++i)
+    {
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float dx = x - src_x[i];
+                float dy = y - src_y[i];
+                float d = sqrtf(dx * dx + dy * dy);
+
+                srcPhase[
+                    static_cast<size_t>(i) * pixelCount +
+                    static_cast<size_t>(y) * w + x
+                ] = d * 0.03f;
+            }
+        }
+    }
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -3722,32 +4060,27 @@ DWORD WINAPI GDIPayload59(LPVOID)
 
         const float t = frame * 0.02f * speed;
 
-        // ⚡ Bolt: Performance optimization
-        // 💡 What: Extracted trigonometric calculations for source positions out of the per-pixel nested loops.
-        // 🎯 Why: Re-evaluating sinf() and cosf() inside the x/y loops redundantly recomputed the exact same
-        //    values w * h times per source.
-        // 📊 Impact: Substantially reduces CPU usage per frame (cuts trig calls from width*height*sources down to just sources).
-        std::vector<float> src_x(sources);
-        std::vector<float> src_y(sources);
-        for (int i = 0; i < sources; ++i)
-        {
-            src_x[i] = w * 0.5f + cosf(sd.phase + i * 4.1f) * w * 0.25f;
-            src_y[i] = h * 0.5f + sinf(sd.phase + i * 2.7f) * h * 0.25f;
-        }
+        // Source positions + per-source distance phases come
+        // from the RAM cache built before the frame loop
+        // (they are frame-invariant; see above).
 
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
             {
+                const size_t pi =
+                    static_cast<size_t>(y) * w + x;
+
                 float acc = 0.0f;
 
                 for (int i = 0; i < sources; ++i)
                 {
-                    float dx = x - src_x[i];
-                    float dy = y - src_y[i];
-                    float d = sqrtf(dx * dx + dy * dy);
+                    const float phase =
+                        srcPhase[
+                            static_cast<size_t>(i) * pixelCount + pi
+                        ];
 
-                    acc += sinf(d * 0.03f - t - i * 2.0f) * 0.5f + 0.5f;
+                    acc += sinf(phase - t - i * 2.0f) * 0.5f + 0.5f;
                 }
 
                 float n = acc / (float)sources;
@@ -3927,6 +4260,34 @@ DWORD WINAPI GDIPayload61(LPVOID)
     const double cr = -0.744;
     const double ci = 0.148;
 
+    // RAM cache: the Julia start point separates into a
+    // per-column part (only the frame time shift is added per
+    // frame) and a per-row part, and the iteration-depth ->
+    // colour mapping has just 64 possible inputs. Cache both
+    // so the per-pixel loop keeps only the (inherently
+    // time-varying) Julia iteration itself.
+    std::vector<double> colZx(w);
+    std::vector<double> rowZy(h);
+
+    for (int x = 0; x < w; ++x)
+        colZx[x] = (x - w * 0.5) * scale;
+
+    for (int y = 0; y < h; ++y)
+        rowZy[y] = (y - h * 0.5) * scale;
+
+    int iterR[64];
+    int iterG[64];
+    int iterB[64];
+
+    for (int iter = 0; iter < 64; ++iter)
+    {
+        const double f = iter / 64.0;
+
+        iterR[iter] = (int)(f * 255);
+        iterG[iter] = (int)((1.0 - f) * 200);
+        iterB[iter] = (int)(255 - f * 150);
+    }
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -3948,9 +4309,9 @@ DWORD WINAPI GDIPayload61(LPVOID)
             for (int x = 0; x < w; ++x)
             {
                 double zx =
-                    (x - w * 0.5) * scale + t * 0.2;
+                    colZx[x] + t * 0.2;
                 double zy =
-                    (y - h * 0.5) * scale;
+                    rowZy[y];
                 double ox = zx;
                 double oy = zy;
                 int iter = 0;
@@ -3970,10 +4331,10 @@ DWORD WINAPI GDIPayload61(LPVOID)
                     continue;
                 }
 
-                double f = iter / 64.0;
-                int r = (int)(f * 255);
-                int g = (int)((1.0 - f) * 200);
-                int bl = (int)(255 - f * 150);
+                // Iteration colour from the 64-entry RAM LUT.
+                int r = iterR[iter];
+                int g = iterG[iter];
+                int bl = iterB[iter];
 
                 uint32_t p = buf.pixels[y * w + x];
                 int sr, sg, sb;
@@ -4037,6 +4398,15 @@ DWORD WINAPI GDIPayload62(LPVOID)
     const float step = 3.0f + sd.amp * 0.5f;
     const float freq = 0.008f + sd.amp * 0.001f;
 
+    // RAM cache (refilled per frame): the flow field separates
+    // into sinf(x-term) * cosf(y-term) plus a diagonal term in
+    // (x + y). Evaluating those as axis/diagonal tables costs
+    // w + h + (w + h) trig calls per frame instead of 3 per
+    // pixel; only the flow angle's cosf/sinf stays per pixel.
+    std::vector<float> sinX(w);
+    std::vector<float> cosY(h);
+    std::vector<float> sinDiag(w + h);
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -4049,14 +4419,24 @@ DWORD WINAPI GDIPayload62(LPVOID)
             continue;
         }
 
+        // Refill the axis/diagonal tables for this frame.
+        for (int x = 0; x < w; ++x)
+            sinX[x] = sinf(x * freq + frame * 0.03f);
+
+        for (int y = 0; y < h; ++y)
+            cosY[y] = cosf(y * freq - frame * 0.02f);
+
+        for (int s = 0; s < w + h; ++s)
+            sinDiag[s] = sinf(s * freq * 0.5f + sd.phase * 0.001f);
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
             {
                 float n =
-                    sinf(x * freq + frame * 0.03f) *
-                    cosf(y * freq - frame * 0.02f) +
-                    sinf((x + y) * freq * 0.5f + sd.phase * 0.001f) * 0.6f;
+                    sinX[x] *
+                    cosY[y] +
+                    sinDiag[x + y] * 0.6f;
 
                 float angle = n * 6.2831853f;
 
@@ -4138,6 +4518,19 @@ DWORD WINAPI GDIPayload63(LPVOID)
     const int cx0 = gw / 2;
     const int cy0 = gh / 2;
 
+    // RAM cache: the screen -> simulation-grid coordinate
+    // maps only depend on x/y and the (fixed) grid size, so
+    // the per-pixel multiply + integer divide runs ONCE here
+    // instead of for every pixel of every frame.
+    std::vector<int> colGx(w);
+    std::vector<int> rowGy(h);
+
+    for (int x = 0; x < w; ++x)
+        colGx[x] = (x * gw) / w;
+
+    for (int y = 0; y < h; ++y)
+        rowGy[y] = (y * gh) / h;
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -4205,8 +4598,8 @@ DWORD WINAPI GDIPayload63(LPVOID)
         {
             for (int x = 0; x < w; ++x)
             {
-                int gx = (x * gw) / w;
-                int gy = (y * gh) / h;
+                int gx = colGx[x];
+                int gy = rowGy[y];
 
                 float v = V[gy * gw + gx];
 

@@ -1,5 +1,6 @@
 ﻿#include "../payloads.h"
 #include "gdibuffer.h"
+#include "fxcache.h"
 #include "light.h"
 
 #include "../utils/utils.h"
@@ -1779,6 +1780,11 @@ DWORD WINAPI GDIPayload69(LPVOID)
 
     const int stride = 1 + (int)(fabsf((float)sd.amp) * 0.5f);
 
+    // RAM cache (reused every frame, allocated once): the
+    // per-column band table is refilled per frame below, but
+    // the buffer itself no longer allocates per frame.
+    std::vector<float> band_x(w);
+
     for (int f = 0; f < 260; ++f)
     {
         if (FXAbort())
@@ -1801,7 +1807,7 @@ DWORD WINAPI GDIPayload69(LPVOID)
 
         // Bolt optimization: Extract trig calculation of 'band' out of per-pixel loops.
         // Avoids redundant w * h trig calls, reducing to w calls per frame.
-        std::vector<float> band_x(w);
+        // (band_x itself is allocated once in RAM before the frame loop.)
         for (int x = 0; x < w; ++x)
         {
             band_x[x] =
@@ -2002,6 +2008,13 @@ DWORD WINAPI GDIPayload71(LPVOID)
         { 15, 7, 13,  5 }
     };
 
+    // RAM cache: the quantizer only ever sees 16 thresholds x
+    // 256 channel values, so precompute all 4096 results ONCE
+    // (FxCache::Bayer4Lut, built on first use and kept in RAM)
+    // and turn the per-channel quantize into a byte lookup.
+    static const FxCache::Bayer4Lut bayerLut =
+        FxCache::BuildBayer4Lut();
+
     for (int f = 0; f < 260; ++f)
     {
         if (FXAbort())
@@ -2032,30 +2045,14 @@ DWORD WINAPI GDIPayload71(LPVOID)
                     b
                 );
 
-                const int th =
-                    bayer4[y & 3][x & 3] * 4;
-
-                auto q = [&](int v)
-                {
-                    int c = v >> 6;
-
-                    if (c > 3)
-                        c = 3;
-
-                    if ((v & 63) > th)
-                        ++c;
-
-                    if (c > 3)
-                        c = 3;
-
-                    return c * 85;
-                };
+                const int thIndex =
+                    bayer4[y & 3][x & 3];
 
                 out.pixels[y * w + x] =
                     RGBPixel(
-                        q(r),
-                        q(g),
-                        q(b)
+                        bayerLut.level[thIndex][r],
+                        bayerLut.level[thIndex][g],
+                        bayerLut.level[thIndex][b]
                     );
             }
         }
@@ -2116,6 +2113,16 @@ DWORD WINAPI GDIPayload72(LPVOID)
     const float cx = w * 0.5f;
     const float cy = h * 0.5f;
 
+    // RAM cache: radius + angle of every pixel are the same
+    // on every frame, so compute sqrtf/atan2f ONCE here and
+    // read them back per frame (see gdi/fxcache.h).
+    FxCache::PolarMap polar;
+
+    polar.Build(
+        w, h, cx, cy,
+        FxCache::PolarRadius | FxCache::PolarAngle
+    );
+
     const int slices = 6 + (sd.amp & 3);
     const float sliceRad =
         (GDI_PI * 2.0f) / (float)slices;
@@ -2143,14 +2150,16 @@ DWORD WINAPI GDIPayload72(LPVOID)
         {
             for (int x = 0; x < w; ++x)
             {
-                const float dx = x - cx;
-                const float dy = y - cy;
+                const size_t pi =
+                    static_cast<size_t>(y) * w + x;
 
+                // Radius/angle from the RAM cache (built once
+                // before the frame loop, not per frame).
                 const float r =
-                    sqrtf(dx * dx + dy * dy);
+                    polar.radius[pi];
 
                 float a =
-                    atan2f(dy, dx);
+                    polar.angle[pi];
                 a -= time;
 
                 a = fmodf(a, sliceRad);
