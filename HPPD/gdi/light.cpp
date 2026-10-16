@@ -1919,14 +1919,14 @@ DWORD WINAPI GDIPayload70(LPVOID)
             }
             else
             {
-                uint32_t r = FXRand(ns);
-                uint32_t g = FXRand(ns);
-                uint32_t b = FXRand(ns);
+                // Bolt optimization: Extract RGB components from a single FXRand call.
+                // Reduces per-pixel RNG calls from 3 to 1.
+                uint32_t rnd = FXRand(ns);
 
                 p[i] = RGBPixel(
-                    (int)(r & 255),
-                    (int)(g & 255),
-                    (int)(b & 255)
+                    (int)(rnd & 255),
+                    (int)((rnd >> 8) & 255),
+                    (int)((rnd >> 16) & 255)
                 );
             }
         }
