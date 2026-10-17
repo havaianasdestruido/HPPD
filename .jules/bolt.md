@@ -10,3 +10,7 @@
 ## 2026-10-16 - Batched random bit generation in GDIPayload70
 **Learning:** Pixel shaders generating random noise (e.g. analog TV static) often call the RNG separately for each colour channel (R, G, B). Since our PRNG (FXRand) returns a 32-bit integer, we are wasting 24 bits of randomness per call.
 **Action:** Fetch all three 8-bit components (r, g, b) from a single FXRand() call using bitwise masking and shifting. This cuts the number of RNG calls per pixel from 3 to 1.
+
+## 2026-10-17 - Precomputed distance squares in GDIPayload22
+**Learning:** Per-pixel distance calculations (like dx^2 + dy^2) inside nested loops waste CPU cycles since coordinates don't change between frames.
+**Action:** Extract distance coordinate calculations (dx^2 and dy^2) to 1D vectors before the frame loops so that inner calculations become a single addition.
