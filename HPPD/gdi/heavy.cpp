@@ -2007,6 +2007,24 @@ DWORD WINAPI GDIPayload22(LPVOID)
     const int cy =
         s.h / 2;
 
+    // RAM cache (frame-invariant): every pixel's dx*dx and dy*dy
+    // only depend on x and y, so compute them ONCE here and read
+    // them back per frame instead of redoing it per pixel.
+    std::vector<uint32_t> dx2(s.w);
+    std::vector<uint32_t> dy2(s.h);
+
+    for (int x = 0; x < s.w; ++x)
+    {
+        int dx = x - cx;
+        dx2[x] = static_cast<uint32_t>(dx * dx);
+    }
+
+    for (int y = 0; y < s.h; ++y)
+    {
+        int dy = y - cy;
+        dy2[y] = static_cast<uint32_t>(dy * dy);
+    }
+
     int t = 0;
 
     ULONGLONG start =
@@ -2023,22 +2041,15 @@ DWORD WINAPI GDIPayload22(LPVOID)
 
         for (int y = 0; y < s.h; ++y)
         {
-            int dy =
-                y - cy;
+            uint32_t dy_sq = dy2[y];
 
             for (int x = 0; x < s.w; ++x)
             {
-                int dx =
-                    x - cx;
-
                 int i =
                     y * s.w + x;
 
                 uint32_t dist2 =
-                    static_cast<uint32_t>(
-                        dx * dx +
-                        dy * dy
-                        );
+                    dx2[x] + dy_sq;
 
                 int wave =
                     sine[
