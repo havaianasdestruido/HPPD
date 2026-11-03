@@ -14,3 +14,7 @@
 ## 2026-10-17 - Precomputed distance squares in GDIPayload22
 **Learning:** Per-pixel distance calculations (like dx^2 + dy^2) inside nested loops waste CPU cycles since coordinates don't change between frames.
 **Action:** Extract distance coordinate calculations (dx^2 and dy^2) to 1D vectors before the frame loops so that inner calculations become a single addition.
+
+## 2026-10-18 - Batched random bit generation in GDIPayload74
+**Learning:** Found another instance of the random bit generation anti-pattern in `GDIPayload74` where `FXRand()` was called 3 times per pixel to generate random static noise for the R, G, and B components. The same optimization from `GDIPayload70` applies.
+**Action:** Replaced the 3 per-pixel `FXRand()` calls with a single call by extracting the three 8-bit components (r, g, b) using bitwise masking and shifting (`rnd & 255`, `(rnd >> 8) & 255`, `(rnd >> 16) & 255`).
