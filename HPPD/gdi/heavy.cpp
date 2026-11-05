@@ -3550,6 +3550,16 @@ DWORD WINAPI GDIPayload56(LPVOID)
         FxCache::PolarRadius
     );
 
+    // Bolt optimization: Cache sin/cos of radius outside the frame loop
+    const size_t pixelCount = static_cast<size_t>(w) * static_cast<size_t>(h);
+    std::vector<float> sinR(pixelCount);
+    std::vector<float> cosR(pixelCount);
+    for (size_t i = 0; i < pixelCount; ++i)
+    {
+        sinR[i] = sinf(polar.radius[i] * 0.02f);
+        cosR[i] = cosf(polar.radius[i] * 0.02f);
+    }
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -3577,6 +3587,11 @@ DWORD WINAPI GDIPayload56(LPVOID)
         float t =
             frame * .055f;
 
+        // Bolt optimization: Time terms using angle-addition identity
+        const float t4 = frame * .055f * 4.0f;
+        const float cosT = cosf(t4);
+        const float sinT = sinf(t4);
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
@@ -3584,17 +3599,11 @@ DWORD WINAPI GDIPayload56(LPVOID)
                 float dx = (float)(x - cx);
                 float dy = (float)(y - cy);
 
-                float r =
-                    polar.radius[
-                        static_cast<size_t>(y) * w + x
-                    ];
+                const size_t pi = static_cast<size_t>(y) * w + x;
 
                 float factor =
                     1.0f +
-                    sinf(
-                        r * .02f -
-                        t * 4.0f
-                    ) *
+                    (sinR[pi] * cosT - cosR[pi] * sinT) *
                     .035f;
 
                 int rx =

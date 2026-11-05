@@ -446,6 +446,51 @@ static void BenchMandel()
                 w, h, frames, oldMs, newMs, oldMs / newMs, (int)sink);
 }
 
+static void BenchPayload56()
+{
+    const int w = 1280, h = 720, frames = 30;
+    const float cx = w * 0.5f, cy = h * 0.5f;
+    volatile float sink = 0;
+
+    std::vector<float> polar_radius(w * h);
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < w; ++x)
+            polar_radius[y * w + x] = sqrtf((x - cx) * (x - cx) + (y - cy) * (y - cy));
+
+    auto t0 = Clock::now();
+    for (int frame = 0; frame < frames; ++frame)
+    {
+        float t = frame * 0.055f;
+        float acc = 0;
+        for (int i = 0; i < w * h; ++i)
+            acc += 1.0f + sinf(polar_radius[i] * 0.02f - t * 4.0f) * 0.035f;
+        sink = acc;
+    }
+    const double oldMs = MsSince(t0);
+
+    std::vector<float> sinR(w * h), cosR(w * h);
+    for (int i = 0; i < w * h; ++i)
+    {
+        sinR[i] = sinf(polar_radius[i] * 0.02f);
+        cosR[i] = cosf(polar_radius[i] * 0.02f);
+    }
+
+    t0 = Clock::now();
+    for (int frame = 0; frame < frames; ++frame)
+    {
+        float t4 = frame * 0.055f * 4.0f;
+        float cosT = cosf(t4), sinT = sinf(t4);
+        float acc = 0;
+        for (int i = 0; i < w * h; ++i)
+            acc += 1.0f + (sinR[i] * cosT - cosR[i] * sinT) * 0.035f;
+        sink = acc;
+    }
+    const double newMs = MsSince(t0);
+
+    std::printf("[bench] payload56 %dx%d x%d frames: old %8.1f ms  cached %8.1f ms  (%.1fx, checksum %d)\n",
+                w, h, frames, oldMs, newMs, oldMs / newMs, (int)sink);
+}
+
 int main()
 {
     TestPolarMap();
@@ -465,6 +510,7 @@ int main()
     BenchPlasma();
     BenchVortex();
     BenchMandel();
+    BenchPayload56();
 
     if (gFailures == 0)
     {
