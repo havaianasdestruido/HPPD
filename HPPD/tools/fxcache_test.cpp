@@ -382,17 +382,26 @@ static void BenchVortex()
     polar.Build(w, h, cx, cy, FxCache::PolarRadius | FxCache::PolarAngle);
     const float cosOff = cosf(0.035f), sinOff = sinf(0.035f);
 
+    std::vector<float> sinR(w * h), cosR(w * h);
+    for (int i = 0; i < w * h; ++i)
+    {
+        sinR[i] = sinf(polar.radius[i] * 0.012f);
+        cosR[i] = cosf(polar.radius[i] * 0.012f);
+    }
+
     t0 = Clock::now();
     for (int frame = 0; frame < frames; ++frame)
     {
         const float time = frame * 0.035f;
+        const float t4 = time * 4.0f;
+        const float cosT = cosf(t4), sinT = sinf(t4);
         int acc = 0;
         for (int y = 0; y < h; ++y)
             for (int x = 0; x < w; ++x)
             {
                 const size_t i = static_cast<size_t>(y) * w + x;
                 const float radius = polar.radius[i];
-                const float vortex = sinf(radius * 0.012f - time * 4.0f) * 0.14f;
+                const float vortex = (sinR[i] * cosT - cosR[i] * sinT) * 0.14f;
                 const float a = polar.angle[i] + vortex;
                 const float ca = cosf(a), sa = sinf(a);
                 const float caP = ca * cosOff - sa * sinOff;

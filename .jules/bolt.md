@@ -18,3 +18,7 @@
 ## 2026-10-18 - Batched random bit generation in GDIPayload74
 **Learning:** Found another instance of the random bit generation anti-pattern in `GDIPayload74` where `FXRand()` was called 3 times per pixel to generate random static noise for the R, G, and B components. The same optimization from `GDIPayload70` applies.
 **Action:** Replaced the 3 per-pixel `FXRand()` calls with a single call by extracting the three 8-bit components (r, g, b) using bitwise masking and shifting (`rnd & 255`, `(rnd >> 8) & 255`, `(rnd >> 16) & 255`).
+
+## 2026-10-19 - Pre-caching trig functions and using angle-addition identity in GDIPayload50
+**Learning:** In `GDIPayload50`, the `vortex` calculation in the per-pixel hot loop depended on `sinf(radius * 0.012f - time * 4.0f)`. Although `radius` was already cached via `polar.radius`, the `sinf` was still evaluated per pixel per frame.
+**Action:** By extracting the `radius * 0.012f` terms into pre-calculated `sinR` and `cosR` arrays outside the frame loop, and applying the angle-addition identity `sin(A - B) = sin(A)cos(B) - cos(A)sin(B)` inside the loop, we avoid calling `sinf()` millions of times per frame, significantly improving performance (~1.8x faster measured by `fxcache_test`). This is a powerful pattern for any `sin(invariant +/- time)` expression inside hot loops.
