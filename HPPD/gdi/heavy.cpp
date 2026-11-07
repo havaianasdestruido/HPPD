@@ -2582,6 +2582,16 @@ DWORD WINAPI GDIPayload50(LPVOID)
     const float cosOff = cosf(0.035f);
     const float sinOff = sinf(0.035f);
 
+    // Bolt optimization: Cache sin/cos of radius outside the frame loop
+    const size_t pixelCount = static_cast<size_t>(w) * static_cast<size_t>(h);
+    std::vector<float> sinR(pixelCount);
+    std::vector<float> cosR(pixelCount);
+    for (size_t i = 0; i < pixelCount; ++i)
+    {
+        sinR[i] = sinf(polar.radius[i] * 0.012f);
+        cosR[i] = cosf(polar.radius[i] * 0.012f);
+    }
+
     for (int frame = 0; frame < 260; ++frame)
     {
         if (FXAbort())
@@ -2608,6 +2618,11 @@ DWORD WINAPI GDIPayload50(LPVOID)
 
         float time = frame * 0.035f;
 
+        // Bolt optimization: Time terms using angle-addition identity
+        const float t4 = time * 4.0f;
+        const float cosT = cosf(t4);
+        const float sinT = sinf(t4);
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
@@ -2624,10 +2639,7 @@ DWORD WINAPI GDIPayload50(LPVOID)
                     polar.angle[pi];
 
                 float vortex =
-                    sinf(
-                        radius * 0.012f -
-                        time * 4.0f
-                    ) *
+                    (sinR[pi] * cosT - cosR[pi] * sinT) *
                     (0.12f + sd.amp * 0.004f);
 
                 float a = angle + vortex;
