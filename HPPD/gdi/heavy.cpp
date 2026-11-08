@@ -3396,6 +3396,12 @@ DWORD WINAPI GDIPayload55(LPVOID)
     std::vector<float> colCos(w);
     std::vector<float> rowSin(h);
 
+    // Bolt optimization: Precompute sin/cos for frame-invariant terms to apply angle-addition identities.
+    std::vector<float> sinNx17(w);
+    std::vector<float> cosNx17(w);
+    std::vector<float> sinNy13(h);
+    std::vector<float> cosNy13(h);
+
     for (int x = 0; x < w; ++x)
     {
         const float nx =
@@ -3404,6 +3410,8 @@ DWORD WINAPI GDIPayload55(LPVOID)
 
         colNx17[x] = nx * 17.0f;
         colNx9[x] = nx * 9.0f;
+        sinNx17[x] = sinf(colNx17[x]);
+        cosNx17[x] = cosf(colNx17[x]);
     }
 
     for (int y = 0; y < h; ++y)
@@ -3414,7 +3422,15 @@ DWORD WINAPI GDIPayload55(LPVOID)
 
         rowNy13[y] = ny * 13.0f;
         rowNy8[y] = ny * 8.0f;
+        sinNy13[y] = sinf(rowNy13[y]);
+        cosNy13[y] = cosf(rowNy13[y]);
     }
+
+    // Bolt optimization: Frame-varying tables for angle-addition identity
+    std::vector<float> sinRowSin(h);
+    std::vector<float> cosRowSin(h);
+    std::vector<float> sinColCos(w);
+    std::vector<float> cosColCos(w);
 
     for (int frame = 0; frame < 230; ++frame)
     {
@@ -3445,26 +3461,34 @@ DWORD WINAPI GDIPayload55(LPVOID)
 
         // Refill the two time-carrying axis tables.
         for (int x = 0; x < w; ++x)
-            colCos[x] = cosf(colNx9[x] + t);
-
-        for (int y = 0; y < h; ++y)
-            rowSin[y] = sinf(rowNy8[y] + t);
+        {
+            float cx = cosf(colNx9[x] + t);
+            colCos[x] = cx;
+            sinColCos[x] = sinf(cx);
+            cosColCos[x] = cosf(cx);
+        }
 
         for (int y = 0; y < h; ++y)
         {
+            float ry = sinf(rowNy8[y] + t);
+            rowSin[y] = ry;
+            sinRowSin[y] = sinf(ry);
+            cosRowSin[y] = cosf(ry);
+        }
+
+        for (int y = 0; y < h; ++y)
+        {
+            float sinRy = sinRowSin[y];
+            float cosRy = cosRowSin[y];
+            float sinNy = sinNy13[y];
+            float cosNy = cosNy13[y];
+
             for (int x = 0; x < w; ++x)
             {
-                float q =
-                    sinf(
-                        colNx17[x] +
-                        rowSin[y]
-                    );
-
-                float r =
-                    sinf(
-                        rowNy13[y] -
-                        colCos[x]
-                    );
+                // Bolt optimization: Replace O(w * h) nested trig calls with O(w * h) basic math
+                // by using sin(A +/- B) angle-addition identities.
+                float q = sinNx17[x] * cosRy + cosNx17[x] * sinRy;
+                float r = sinNy * cosColCos[x] - cosNy * sinColCos[x];
 
                 int sx =
                     ClampI(
