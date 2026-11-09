@@ -29,3 +29,7 @@
 ## 2026-10-20 - Using angle-addition identity to separate row and column calculations in GDIPayload55
 **Learning:** In `GDIPayload55`, inner per-pixel loops contained `sinf(colNx17[x] + rowSin[y])` and `sinf(rowNy13[y] - colCos[x])`. Although these expressions combine both row and column components, they can be decoupled using the trigonometric angle-addition identities `sin(A + B) = sin(A)cos(B) + cos(A)sin(B)` and `sin(A - B) = sin(A)cos(B) - cos(A)sin(B)`.
 **Action:** Precalculate `sinf` and `cosf` for the individual row and column components outside the per-pixel loops. Then, use the angle-addition identity inside the loops to calculate the final sine value. This converts `O(w * h)` expensive trigonometric function calls into `O(w + h)` trig calls and some basic arithmetic inside the loop, yielding a ~2.2x speedup.
+
+## 2026-10-21 - Pre-caching trig functions and using angle-addition identity in GDIPayload53
+**Learning:** In `GDIPayload53`, the `tunnel` and `hue` calculations in the per-pixel hot loop depended on `sinf(invariant +/- time)` expressions. Although some parameters were already cached via `polar.radius` and `sinA6`, the `sinf` was still evaluated twice per pixel per frame.
+**Action:** By extracting the invariant terms into pre-calculated `sin` and `cos` arrays outside the frame loop, and applying the angle-addition identity `sin(A +/- B) = sin(A)cos(B) +/- cos(A)sin(B)` inside the loop, we avoid calling `sinf()` millions of times per frame, significantly improving performance (~1.9x faster measured by `fxcache_test`).

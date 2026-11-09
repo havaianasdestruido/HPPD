@@ -455,6 +455,87 @@ static void BenchMandel()
                 w, h, frames, oldMs, newMs, oldMs / newMs, (int)sink);
 }
 
+static void BenchPayload53()
+{
+    const int w = 1280, h = 720, frames = 30;
+    const float cx = w * 0.5f, cy = h * 0.5f;
+    volatile float sink = 0;
+
+    std::vector<float> polar_radius(w * h);
+    std::vector<float> polar_angle(w * h);
+    for (int y = 0; y < h; ++y)
+    {
+        for (int x = 0; x < w; ++x)
+        {
+            polar_radius[y * w + x] = sqrtf((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            polar_angle[y * w + x] = atan2f(y - cy, x - cx);
+        }
+    }
+
+    std::vector<float> sinA6(w * h);
+    for (int i = 0; i < w * h; ++i)
+        sinA6[i] = sinf(polar_angle[i] * 6.0f);
+
+    auto t0 = Clock::now();
+    for (int frame = 0; frame < frames; ++frame)
+    {
+        float t = frame * 0.035f;
+        float acc = 0;
+        for (int i = 0; i < w * h; ++i)
+        {
+            float r = polar_radius[i];
+            float tunnel = 1.0f + sinf(r * .025f - t * 5.0f + sinA6[i] * 2.0f) * .04f;
+            float hue = sinf(r * .01f - t * 3.0f) * .18f;
+            acc += tunnel + hue;
+        }
+        sink = acc;
+    }
+    const double oldMs = MsSince(t0);
+
+    std::vector<float> sinTunnelA(w * h);
+    std::vector<float> cosTunnelA(w * h);
+    std::vector<float> sinHueA(w * h);
+    std::vector<float> cosHueA(w * h);
+
+    for (int i = 0; i < w * h; ++i)
+    {
+        float r = polar_radius[i];
+        float tunnelA = r * .025f + sinA6[i] * 2.0f;
+        sinTunnelA[i] = sinf(tunnelA);
+        cosTunnelA[i] = cosf(tunnelA);
+
+        float hueA = r * .01f;
+        sinHueA[i] = sinf(hueA);
+        cosHueA[i] = cosf(hueA);
+    }
+
+    t0 = Clock::now();
+    for (int frame = 0; frame < frames; ++frame)
+    {
+        float t = frame * 0.035f;
+        float tTunnel = t * 5.0f;
+        float cosTTunnel = cosf(tTunnel);
+        float sinTTunnel = sinf(tTunnel);
+
+        float tHue = t * 3.0f;
+        float cosTHue = cosf(tHue);
+        float sinTHue = sinf(tHue);
+
+        float acc = 0;
+        for (int i = 0; i < w * h; ++i)
+        {
+            float tunnel = 1.0f + (sinTunnelA[i] * cosTTunnel - cosTunnelA[i] * sinTTunnel) * .04f;
+            float hue = (sinHueA[i] * cosTHue - cosHueA[i] * sinTHue) * .18f;
+            acc += tunnel + hue;
+        }
+        sink = acc;
+    }
+    const double newMs = MsSince(t0);
+
+    std::printf("[bench] payload53 %dx%d x%d frames: old %8.1f ms  cached %8.1f ms  (%.1fx, checksum %d)\n",
+                w, h, frames, oldMs, newMs, oldMs / newMs, (int)sink);
+}
+
 static void BenchPayload56()
 {
     const int w = 1280, h = 720, frames = 30;
@@ -519,6 +600,7 @@ int main()
     BenchPlasma();
     BenchVortex();
     BenchMandel();
+    BenchPayload53();
     BenchPayload56();
 
     if (gFailures == 0)
