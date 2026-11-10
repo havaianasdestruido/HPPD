@@ -3064,8 +3064,24 @@ DWORD WINAPI GDIPayload53(LPVOID)
 
     std::vector<float> sinA6(pixelCount);
 
+    // Bolt optimization: Precompute sin/cos for frame-invariant terms to apply angle-addition identities.
+    std::vector<float> sinTunnel(pixelCount);
+    std::vector<float> cosTunnel(pixelCount);
+    std::vector<float> sinHue(pixelCount);
+    std::vector<float> cosHue(pixelCount);
+
     for (size_t i = 0; i < pixelCount; ++i)
+    {
         sinA6[i] = sinf(polar.angle[i] * 6.0f);
+
+        float tunnelInv = polar.radius[i] * .025f + sinA6[i] * 2.0f;
+        sinTunnel[i] = sinf(tunnelInv);
+        cosTunnel[i] = cosf(tunnelInv);
+
+        float hueInv = polar.radius[i] * .01f;
+        sinHue[i] = sinf(hueInv);
+        cosHue[i] = cosf(hueInv);
+    }
 
     // The raw angle map is only needed to build sinA6;
     // release it so RAM holds just what frames read.
@@ -3102,6 +3118,15 @@ DWORD WINAPI GDIPayload53(LPVOID)
             1.0f +
             sinf(t) * .025f;
 
+        // Bolt optimization: Time terms for tunnel and hue using angle-addition identity
+        const float t5 = t * 5.0f;
+        const float cosT5 = cosf(t5);
+        const float sinT5 = sinf(t5);
+
+        const float t3 = t * 3.0f;
+        const float cosT3 = cosf(t3);
+        const float sinT3 = sinf(t3);
+
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
@@ -3116,11 +3141,7 @@ DWORD WINAPI GDIPayload53(LPVOID)
 
                 float tunnel =
                     1.0f +
-                    sinf(
-                        r * .025f -
-                        t * 5.0f +
-                        sinA6[pi] * 2.0f
-                    ) * .04f;
+                    (sinTunnel[pi] * cosT5 - cosTunnel[pi] * sinT5) * .04f;
 
                 float nr =
                     r * tunnel * zoom;
@@ -3143,7 +3164,7 @@ DWORD WINAPI GDIPayload53(LPVOID)
                     buf.pixels[sy * w + sx];
 
                 float hue =
-                    sinf(r * .01f - t * 3.0f) *
+                    (sinHue[pi] * cosT3 - cosHue[pi] * sinT3) *
                     .18f;
 
                 buf.pixels[y * w + x] =
