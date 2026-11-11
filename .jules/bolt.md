@@ -32,3 +32,7 @@
 ## 2026-10-21 - Extract frame-invariant terms using angle-addition identity in GDIPayload53
 **Learning:** In `GDIPayload53`, per-pixel loops contained `sinf(r * .025f - t * 5.0f + sinA6[pi] * 2.0f)` and `sinf(r * .01f - t * 3.0f)`. These expressions re-calculate frame-invariant values millions of times per frame.
 **Action:** Decouple these expressions using the trigonometric angle-addition identity `sin(A - B) = sin(A)cos(B) - cos(A)sin(B)`. Precompute `sinf` and `cosf` for the frame-invariant terms (`r * .025f + sinA6[pi] * 2.0f` and `r * .01f`) into arrays outside the frame loop. Then, apply the identity inside the loop with the time-varying components.
+
+## 2024-05-18 - Payload 9 (Recursive zoom + hue chaos) math bottleneck extracted via Angle Addition Identity
+**Learning:** Found a nested loop performance anti-pattern in `GDIPayload9` computing `fx = x + y * t` (or similar) mixed into `std::sin((fx + sd.phase) * 0.025f)`. The math can be factored out completely by splitting it into an x-term and a y-term, precomputing `std::sin()` and `std::cos()` for all rows and columns per frame, and combining them in the inner loop with `sin(A)*cos(B) + cos(A)*sin(B)`. This replaces millions of `sin` calls with a simple pair of multiplications per pixel.
+**Action:** Always scan per-pixel loop trig functions for polynomial variables like `x + y*t` or `x*t + y` that can be cleanly separated and passed into angle addition identities to move the expensive trig calls out of the loop.
