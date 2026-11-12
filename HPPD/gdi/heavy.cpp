@@ -880,6 +880,12 @@ DWORD WINAPI GDIPayload9(LPVOID)
 
     float t = 0.0f;
 
+    // Bolt optimization: Precompute sin/cos for frame-invariant terms to apply angle-addition identities.
+    std::vector<float> sinFx(w);
+    std::vector<float> cosFx(w);
+    std::vector<float> sinGy(h);
+    std::vector<float> cosGy(h);
+
     for (int frame = 0; frame < 150; ++frame)
     {
         if (FXAbort())
@@ -911,24 +917,44 @@ DWORD WINAPI GDIPayload9(LPVOID)
             SRCCOPY
         );
 
+        int mode = static_cast<int>(t) % 3 ? 1 : (static_cast<int>(t) % 2 ? 2 : 3);
+
+        for (int x = 0; x < w; ++x)
+        {
+            float termX;
+            if (mode == 1) termX = x * 0.025f;
+            else if (mode == 2) termX = (t * x + sd.phase) * 0.025f;
+            else termX = (t * x * x + sd.phase) * 0.025f;
+
+            sinFx[x] = std::sin(termX);
+            cosFx[x] = std::cos(termX);
+        }
+
         for (int y = 0; y < h; ++y)
         {
+            float termY;
+            if (mode == 1) termY = (y * t + sd.phase) * 0.025f;
+            else if (mode == 2) termY = y * 0.025f;
+            else termY = y * y * t * 0.025f;
+
+            sinGy[y] = std::sin(termY);
+            cosGy[y] = std::cos(termY);
+        }
+
+        for (int y = 0; y < h; ++y)
+        {
+            float sin_Gy = sinGy[y];
+            float cos_Gy = cosGy[y];
+
             for (int x = 0; x < w; ++x)
             {
                 int i = y * w + x;
 
-                float fx;
-
-                if (static_cast<int>(t) % 3)
-                    fx = x + y * t;
-                else if (static_cast<int>(t) % 2)
-                    fx = t * x + y;
-                else
-                    fx = t * x * x + y * y * t;
+                float wave_f = sinFx[x] * cos_Gy + cosFx[x] * sin_Gy;
 
                 int wave =
                     static_cast<int>(
-                        std::sin((fx + sd.phase) * 0.025f) * (45.0f + sd.amp)
+                        wave_f * (45.0f + sd.amp)
                         );
 
                 pixels[i] =

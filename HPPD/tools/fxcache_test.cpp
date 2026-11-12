@@ -249,7 +249,69 @@ static void TestVoronoiTables()
 }
 
 // ------------------------------------------------------------
-// 5. Payload 8 Mandelbrot: separable cx/cy + iteration map.
+// 5. Payload 9 Recursive zoom + hue chaos.
+// ------------------------------------------------------------
+static void TestPayload9Cache()
+{
+    const int w = 240, h = 135, phase = 777, amp = 10;
+
+    std::vector<float> sinFx(w), cosFx(w), sinGy(h), cosGy(h);
+
+    for (int frame = 0; frame < 6; ++frame)
+    {
+        const float t = frame * 1.0f;
+
+        int mode = static_cast<int>(t) % 3 ? 1 : (static_cast<int>(t) % 2 ? 2 : 3);
+
+        for (int x = 0; x < w; ++x)
+        {
+            float termX;
+            if (mode == 1) termX = x * 0.025f;
+            else if (mode == 2) termX = (t * x + phase) * 0.025f;
+            else termX = (t * x * x + phase) * 0.025f;
+
+            sinFx[x] = std::sin(termX);
+            cosFx[x] = std::cos(termX);
+        }
+
+        for (int y = 0; y < h; ++y)
+        {
+            float termY;
+            if (mode == 1) termY = (y * t + phase) * 0.025f;
+            else if (mode == 2) termY = y * 0.025f;
+            else termY = y * y * t * 0.025f;
+
+            sinGy[y] = std::sin(termY);
+            cosGy[y] = std::cos(termY);
+        }
+
+        for (int y = 0; y < h; ++y)
+        {
+            float sin_Gy = sinGy[y];
+            float cos_Gy = cosGy[y];
+
+            for (int x = 0; x < w; ++x)
+            {
+                float fx;
+                if (static_cast<int>(t) % 3) fx = x + y * t;
+                else if (static_cast<int>(t) % 2) fx = t * x + y;
+                else fx = t * x * x + y * y * t;
+
+                const int oldWave = static_cast<int>(std::sin((fx + phase) * 0.025f) * (45.0f + amp));
+                const int newWave = static_cast<int>((sinFx[x] * cos_Gy + cosFx[x] * sin_Gy) * (45.0f + amp));
+
+                // Allow a small off-by-one difference due to float precision vs sin(A+B) identity,
+                // wave is just an integer pixel shift/color so it is visually identical.
+                CHECK(std::abs(oldWave - newWave) <= 1, "payload9 cached wave matches direct");
+            }
+        }
+    }
+
+    std::printf("[ok] Payload 9 cache: wave matches over 6 frames\n");
+}
+
+// ------------------------------------------------------------
+// 6. Payload 8 Mandelbrot: separable cx/cy + iteration map.
 // ------------------------------------------------------------
 static int MandelIter(double cx, double cy)
 {
@@ -455,6 +517,91 @@ static void BenchMandel()
                 w, h, frames, oldMs, newMs, oldMs / newMs, (int)sink);
 }
 
+static void BenchPayload9()
+{
+    const int w = 1920, h = 1080, frames = 30;
+    const float sd_phase = 1234.0f;
+    const int sd_amp = 5;
+    volatile int sink = 0;
+
+    auto t0 = Clock::now();
+    for (int frame = 0; frame < frames; ++frame)
+    {
+        float t = frame * 1.0f;
+        int acc = 0;
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                float fx;
+                if (static_cast<int>(t) % 3)
+                    fx = x + y * t;
+                else if (static_cast<int>(t) % 2)
+                    fx = t * x + y;
+                else
+                    fx = t * x * x + y * y * t;
+
+                int wave = static_cast<int>(std::sin((fx + sd_phase) * 0.025f) * (45.0f + sd_amp));
+                acc += wave;
+            }
+        }
+        sink = acc;
+    }
+    const double oldMs = MsSince(t0);
+
+    std::vector<float> sinFx(w), cosFx(w);
+    std::vector<float> sinGy(h), cosGy(h);
+
+    t0 = Clock::now();
+    for (int frame = 0; frame < frames; ++frame)
+    {
+        float t = frame * 1.0f;
+        int acc = 0;
+
+        int mode = static_cast<int>(t) % 3 ? 1 : (static_cast<int>(t) % 2 ? 2 : 3);
+
+        for (int x = 0; x < w; ++x)
+        {
+            float termX;
+            if (mode == 1) termX = x * 0.025f;
+            else if (mode == 2) termX = (t * x + sd_phase) * 0.025f;
+            else termX = (t * x * x + sd_phase) * 0.025f;
+
+            sinFx[x] = std::sin(termX);
+            cosFx[x] = std::cos(termX);
+        }
+
+        for (int y = 0; y < h; ++y)
+        {
+            float termY;
+            if (mode == 1) termY = (y * t + sd_phase) * 0.025f;
+            else if (mode == 2) termY = y * 0.025f;
+            else termY = y * y * t * 0.025f;
+
+            sinGy[y] = std::sin(termY);
+            cosGy[y] = std::cos(termY);
+        }
+
+        for (int y = 0; y < h; ++y)
+        {
+            float sin_Gy = sinGy[y];
+            float cos_Gy = cosGy[y];
+
+            for (int x = 0; x < w; ++x)
+            {
+                float wave_f = sinFx[x] * cos_Gy + cosFx[x] * sin_Gy;
+                int wave = static_cast<int>(wave_f * (45.0f + sd_amp));
+                acc += wave;
+            }
+        }
+        sink = acc;
+    }
+    const double newMs = MsSince(t0);
+
+    std::printf("[bench] payload9  %dx%d x%d frames: old %8.1f ms  cached %8.1f ms  (%.1fx, checksum %d)\n",
+                w, h, frames, oldMs, newMs, oldMs / newMs, (int)sink);
+}
+
 static void BenchPayload56()
 {
     const int w = 1280, h = 720, frames = 30;
@@ -506,6 +653,7 @@ int main()
     TestBayerLut();
     TestPlasmaCache();
     TestVoronoiTables();
+    TestPayload9Cache();
     TestMandelCache();
 
     // RAM footprint of a full-screen polar cache at 1080p.
@@ -519,6 +667,7 @@ int main()
     BenchPlasma();
     BenchVortex();
     BenchMandel();
+    BenchPayload9();
     BenchPayload56();
 
     if (gFailures == 0)
